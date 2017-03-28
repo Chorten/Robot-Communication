@@ -1,0 +1,49 @@
+#VRML_SIM V8.5 utf8
+WorldInfo {
+  basicTimeStep 16
+}
+Viewpoint {
+  orientation -0.11102669 0.97685917 0.18280927 2.0706624
+  position 4.0974664 1.7569523 -1.7596713
+}
+Background {
+  skyColor [
+    0.4 0.7 1
+  ]
+}
+Solid {
+  translation 0 0.09671271 0
+  children [
+    Shape {
+      appearance Appearance {
+        material Material {
+        }
+      }
+      geometry Sphere {
+        radius 0.1
+      }
+    }
+  ]
+  boundingObject Shape {
+    geometry Sphere {
+      radius 0.1
+    }
+  }
+  physics Physics {
+  }
+  linearVelocity 0 -1.2425793e-06 0
+}
+DirectionalLight {
+  ambientIntensity 1
+  direction -0.33 -1 -0.5
+  castShadows TRUE
+}
+RobotstadiumSoccerField {
+}
+Nao {
+  translation 0.38050349 0.364 0.087344502
+  rotation -0.092691771 0.70406387 0.70406129 2.956738
+}
+Nao {
+  translation -0.2562229 0.334 0.035321246
+}
