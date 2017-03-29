@@ -52,7 +52,7 @@ int main(int argc, char **argv)
   
   //wb_robot_init();
   //DifferentialWheels().setSpeed(100, 100);
-  std::string filename = "/Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/HandWave.motion";
+  std::string filename = "/Users/Chorten/Documents/Senior-Design-Project/controllers/motions/HandWave.motion";
   Motion *handwave = new Motion(filename);
   if (! handwave->isValid()) {
     std::cout << "could not load file: " << filename << std::endl;
@@ -60,6 +60,15 @@ int main(int argc, char **argv)
   }
   handwave->setLoop(true);
   handwave->play();
+  handwave->stop();
+  std::string filename2 = "/Users/Chorten/Documents/Senior-Design-Project/controllers/motions/Forwards.motion";
+  Motion *walk = new Motion(filename2);
+  if (! walk->isValid()) {
+    std::cout << "could not load file: " << filename2 << std::endl;
+    delete walk;
+  }
+  walk->setLoop(true);
+  walk->play();
   
   
   //char message[128];
