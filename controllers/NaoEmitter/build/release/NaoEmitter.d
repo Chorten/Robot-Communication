@@ -1,7 +1,11 @@
 build/release/NaoEmitter.o: NaoEmitter.cpp \
- C:/Program\ Files/Webots/include/controller/cpp/webots/Robot.hpp \
- C:/Program\ Files/Webots/include/controller/cpp/webots/Emitter.hpp \
- C:\Program\ Files\Webots/include/controller/cpp/webots/Device.hpp \
- C:/Program\ Files/Webots/include/controller/c/webots/types.h \
- C:/Program\ Files/Webots/include/controller/cpp/webots/DifferentialWheels.hpp \
- C:\Program\ Files\Webots/include/controller/cpp/webots/Robot.hpp
+  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Keyboard.hpp \
+  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/utils/Motion.hpp \
+  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/utils/../../../c/webots/types.h \
+  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Robot.hpp \
+  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Emitter.hpp \
+  /Applications/Webots.app/include/controller/cpp/webots/Device.hpp \
+  /Applications/Webots.app/include/controller/cpp/webots/../../c/webots/types.h \
+  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Motor.hpp \
+  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/DifferentialWheels.hpp \
+  /Applications/Webots.app/include/controller/cpp/webots/Robot.hpp

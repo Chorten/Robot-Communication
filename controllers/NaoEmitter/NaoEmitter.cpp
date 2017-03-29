@@ -9,15 +9,20 @@
 // and/or to add some other includes
 //#include <webots/Robot.hpp>
 //#ifdef _WIN32
-#include <C:/Program Files/Webots/include/controller/cpp/webots/Robot.hpp>
-#include <C:/Program Files/Webots/include/controller/cpp/webots/Emitter.hpp>
-#include <C:/Program Files/Webots/include/controller/cpp/webots/DifferentialWheels.hpp>
+//#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/HandWave.motion>
+
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Keyboard.hpp>
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/utils/Motion.hpp>
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Robot.hpp>
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Emitter.hpp>
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Motor.hpp>
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/DifferentialWheels.hpp>
 //#else
 //#include </Users/Chorten/Desktop/Webots/Projects/include/controller/c/webots/differential_wheels.h>
 //#endif
 
 
-int wb_emitter_send(WbDeviceTag tag, const void *data, int size);
+//int wb_emitter_send(WbDeviceTag tag, const void *data, int size);
 
 
 // All the webots classes are defined in the "webots" namespace
@@ -46,12 +51,25 @@ int main(int argc, char **argv)
 
   
   //wb_robot_init();
-  DifferentialWheels().setSpeed(100, 100);
+  //DifferentialWheels().setSpeed(100, 100);
+  std::string filename = "/Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/HandWave.motion";
+  Motion *handwave = new Motion(filename);
+  if (! handwave->isValid()) {
+    std::cout << "could not load file: " << filename << std::endl;
+    delete handwave;
+  }
+  handwave->setLoop(true);
+  handwave->play();
   
-  char message[128];
-  sprintf(message, "hello");
-  Emitter("e1").send(message, sizeof(message) + 1);
   
+  //char message[128];
+  //sprintf(message, "hello");
+  //Emitter(robot->getName()).send(message, sizeof(message) + 1);
+  //Motor *move = new Motor(robot->getName());
+  //move->setVelocity(100);
+  //Keyboard().enable(10);
+  //robot-> step(50);
+    
   // Main loop:
   // - perform simulation steps until Webots is stopping the controller
   while (robot->step(timeStep) != -1) {
@@ -60,7 +78,7 @@ int main(int argc, char **argv)
     //  double val = ds->getValue();
 
     // Process sensor data here.
-
+    
     // Enter here functions to send actuator commands, like:
     //  led->set(1);
   };
