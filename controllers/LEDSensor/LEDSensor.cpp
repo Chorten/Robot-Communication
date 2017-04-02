@@ -1,9 +1,11 @@
-#include <webots/Robot.hpp>
-#include <webots/LED.hpp>
-#include <webots/DistanceSensor.hpp>
-#include <webots/PositionSensor.hpp>
-#include <webots/Emitter.hpp>
-#include <webots/Receiver.hpp>
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/LED.hpp>
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/DistanceSensor.hpp>
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Robot.hpp>
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Emitter.hpp>
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Receiver.hpp>
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/PositionSensor.hpp>
+#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Servo.hpp>
+
 #include <iostream>
 
 using namespace webots;
@@ -13,12 +15,15 @@ int main(int argc, char **argv) {
   Robot *robot = new Robot();
 
   int timeStep = (int) robot->getBasicTimeStep();
-  LED *led = robot->getLED("ledName");
-  DistanceSensor *distanceSensor = robot->getDistanceSensor("distanceSensorName");
-  PositionSensor *positionSensor = robot->getPositionSensor("positionSensorName");
-  
-  distanceSensor->enable(timeStep);
-  positionSensor->enable(timeStep);
+  //LED *led = robot->getLED("ledName");
+  DistanceSensor *distanceSensor1 = robot->getDistanceSensor("Sonar/Right");
+  DistanceSensor *distanceSensor2 = robot->getDistanceSensor("Sonar/Left");
+  //PositionSensor *positionSensor = robot->getPositionSensor("positionSensorName");
+
+  distanceSensor1->enable(timeStep);
+  distanceSensor2->enable(timeStep);
+
+  //positionSensor->enable(timeStep);
 
 
   char message[128];
@@ -31,15 +36,17 @@ int main(int argc, char **argv) {
   
   //Main control loop
   while (robot->step(timeStep) != -1) {
-    // Read the sensors
-    double distanceVal = distanceSensor->getValue();
-    double positionVal = positionSensor->getValue();
-    cout << distanceVal << " " << positionVal << endl;
+    // Read the sensor
+    double distanceVal1 = distanceSensor1->getValue();
+    double distanceVal2 = distanceSensor2->getValue();
+
+    //double positionVal = positionSensor->getValue();
+    cout << distanceVal1 << " "<< distanceVal2 << endl;
 
     // Process sensor data here
 
     // Enter here functions to send actuator commands
-    led->set(1);
+    //led->set(1);
   }
 
   delete robot;
