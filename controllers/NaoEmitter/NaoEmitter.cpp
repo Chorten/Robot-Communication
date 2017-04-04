@@ -9,24 +9,104 @@
 // and/or to add some other includes
 //#include <webots/Robot.hpp>
 //#ifdef _WIN32
-//#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/HandWave.motion>
+//#include <webots/HandWave.motion>
 
-#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Keyboard.hpp>
-#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/utils/Motion.hpp>
-#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Robot.hpp>
-#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Emitter.hpp>
-#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Motor.hpp>
-#include </Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/DifferentialWheels.hpp>
+#include <webots/Keyboard.hpp>
+#include <webots/utils/Motion.hpp>
+#include <webots/Robot.hpp>
+#include <webots/Emitter.hpp>
+#include <webots/Receiver.hpp>
+#include <webots/Camera.hpp>
+#include <webots/Motor.hpp>
+#include <webots/DistanceSensor.hpp>
+#include <webots/PositionSensor.hpp>
+
 //#else
-//#include </Users/Chorten/Desktop/Webots/Projects/include/controller/c/webots/differential_wheels.h>
+//#include </home/viruszer0/Desktop/Webots/include/controller/c/webots/differential_wheels.h>
 //#endif
 
-
-//int wb_emitter_send(WbDeviceTag tag, const void *data, int size);
-
-
-// All the webots classes are defined in the "webots" namespace
 using namespace webots;
+using namespace std;
+
+
+class NaoRobot : public Robot
+{
+  public:
+    NaoRobot(char* name);
+    void run();
+  private:
+    int timeStep;
+    char* name;
+    Receiver* receiver;
+    Emitter* emitter;
+    DistanceSensor *distanceSensor1;
+    DistanceSensor *distanceSensor2;
+    PositionSensor *positionSensor1;
+    PositionSensor *positionSensor2;
+    PositionSensor *positionSensor3;
+    PositionSensor *positionSensor4;
+};
+
+NaoRobot::NaoRobot(char* name)
+{
+  timeStep = 32;
+  this->name = name;
+  emitter = getEmitter("emitter");
+  receiver = getReceiver("receiver");
+  receiver->enable(timeStep);
+  distanceSensor1 = getDistanceSensor("Sonar/Right");
+  distanceSensor2 = getDistanceSensor("Sonar/Left");
+  positionSensor1 = getPositionSensor("HeadYawS");
+  positionSensor2 = getPositionSensor("HeadPitchS");
+  positionSensor3 = getPositionSensor("RShoulderPitchS");
+  positionSensor4 = getPositionSensor("RShoulderRollS");
+  distanceSensor1->enable(timeStep);
+  distanceSensor2->enable(timeStep);
+}
+
+void NaoRobot::run()
+{
+
+  std::string filename = "/home/viruszer0/Desktop/Repo/Senior-Design-Project/controllers/motions/HandWave.motion";
+  Motion *handwave = new Motion(filename);
+  if (! handwave->isValid())
+  {
+    std::cout << "could not load file: " << filename << std::endl;
+    delete handwave;
+  }
+  handwave->setLoop(true);
+  handwave->play();
+  handwave->stop();
+  std::string filename2 = "/home/viruszer0/Desktop/Repo/Senior-Design-Project/controllers/motions/Forwards.motion";
+  Motion *walk = new Motion(filename2);
+  if (! walk->isValid())
+  {
+    std::cout << "could not load file: " << filename2 << std::endl;
+    delete walk;
+  }
+  walk->setLoop(true);
+  walk->play();
+  
+  string sName(name);
+  string stringMessageS = "Hello, my name is " + sName;
+  const char* messageS = stringMessageS.c_str();
+  
+  emitter->send(messageS, 22);
+  
+  while(step(timeStep) != -1)
+  {
+    double distanceVal1 = distanceSensor1->getValue();
+    double distanceVal2 = distanceSensor2->getValue();
+    
+    if (receiver->getQueueLength()>0){
+      string messageR((const char*)receiver->getData());
+      receiver->nextPacket();
+
+      cout << name << " received: " << messageR << endl;
+    }
+  }   
+}
+
 
 // This is the main program of your controller.
 // It creates an instance of your Robot instance, launches its
@@ -37,61 +117,20 @@ using namespace webots;
 // "controllerArgs" field of the Robot node
 int main(int argc, char **argv)
 {
+  char* name = argv[1];
   // create the Robot instance.
-  Robot *robot = new Robot();
-
-  // get the time step of the current world.
-  int timeStep = (int) robot->getBasicTimeStep();
+  NaoRobot *robot = new NaoRobot(name);
+  robot->run();
 
   // You should insert a getDevice-like function in order to get the
   // instance of a device of the robot. Something like:
   //  LED *led = robot->getLED("ledname");
-  //  DistanceSensor *ds = robot->getDistanceSensor("dsname");
-  //  ds->enable(timeStep);
-
   
-  //wb_robot_init();
-  //DifferentialWheels().setSpeed(100, 100);
-  std::string filename = "/Users/Chorten/Documents/Senior-Design-Project/controllers/motions/HandWave.motion";
-  Motion *handwave = new Motion(filename);
-  if (! handwave->isValid()) {
-    std::cout << "could not load file: " << filename << std::endl;
-    delete handwave;
-  }
-  handwave->setLoop(true);
-  handwave->play();
-  handwave->stop();
-  std::string filename2 = "/Users/Chorten/Documents/Senior-Design-Project/controllers/motions/Forwards.motion";
-  Motion *walk = new Motion(filename2);
-  if (! walk->isValid()) {
-    std::cout << "could not load file: " << filename2 << std::endl;
-    delete walk;
-  }
-  walk->setLoop(true);
-  walk->play();
-  
-  
-  //char message[128];
-  //sprintf(message, "hello");
-  //Emitter(robot->getName()).send(message, sizeof(message) + 1);
   //Motor *move = new Motor(robot->getName());
   //move->setVelocity(100);
   //Keyboard().enable(10);
   //robot-> step(50);
-    
-  // Main loop:
-  // - perform simulation steps until Webots is stopping the controller
-  while (robot->step(timeStep) != -1) {
-    // Read the sensors:
-    // Enter here functions to read sensor data, like:
-    //  double val = ds->getValue();
-
-    // Process sensor data here.
-    
-    // Enter here functions to send actuator commands, like:
-    //  led->set(1);
-  };
-
+  
   // Enter here exit cleanup code.
 
   delete robot;

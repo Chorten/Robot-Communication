@@ -1,11 +1,13 @@
 build/release/NaoEmitter.o: NaoEmitter.cpp \
-  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Keyboard.hpp \
-  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/utils/Motion.hpp \
-  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/utils/../../../c/webots/types.h \
-  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Robot.hpp \
-  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Emitter.hpp \
-  /Applications/Webots.app/include/controller/cpp/webots/Device.hpp \
-  /Applications/Webots.app/include/controller/cpp/webots/../../c/webots/types.h \
-  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/Motor.hpp \
-  /Users/Chorten/Desktop/Webots/Projects/include/controller/cpp/webots/DifferentialWheels.hpp \
-  /Applications/Webots.app/include/controller/cpp/webots/Robot.hpp
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/Keyboard.hpp \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/utils/Motion.hpp \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/utils/../../../c/webots/types.h \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/Robot.hpp \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/Emitter.hpp \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/Device.hpp \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/../../c/webots/types.h \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/Receiver.hpp \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/Camera.hpp \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/Motor.hpp \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/DistanceSensor.hpp \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/PositionSensor.hpp
