@@ -9,9 +9,9 @@ orthographicViewHeight: 1
 textFiles: 0 "controllers/NaoEmitter/NaoEmitter.cpp" "controllers/LEDSensor/LEDSensor.cpp"
 documentationBook: 
 documentationPage: 
-renderingDevicePerspectives: 1885;1;0.05;0;0
 renderingDevicePerspectives: 1088;1;0.05;0;0
-renderingDevicePerspectives: 290;1;0.05;0;0
 renderingDevicePerspectives: 1886;1;0.05;0;0
-renderingDevicePerspectives: 289;1;0.05;0;0
+renderingDevicePerspectives: 1885;1;0.05;0;0
 renderingDevicePerspectives: 1087;1;0.05;0;0
+renderingDevicePerspectives: 290;1;0.05;0;0
+renderingDevicePerspectives: 289;1;0.05;0;0

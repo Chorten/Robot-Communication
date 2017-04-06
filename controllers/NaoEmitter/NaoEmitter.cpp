@@ -49,6 +49,7 @@ typedef unsigned char byte;
 class NaoRobot : public Robot
 {
   public:
+    static const size_t nameSize = 4;
     NaoRobot(char* name);
     void run();
   private:
@@ -68,7 +69,6 @@ class NaoRobot : public Robot
 class Data
 {
   public:
-    char* name; //pointer is fine because we are never changing the name.
     long time; //time in microseconds
     double x;
     double y;
@@ -76,16 +76,37 @@ class Data
     double velocityY;
     
     Data(char* name = NULL, long time = 0, double x = 0, double y = 0, double velocityX = 0, double velocityY = 0);
+    void setName(char* name);
+    string getName() const;
+  private:
+    char n0, n1, n2, n3;
 };
 
 Data::Data(char* name, long time, double x, double y, double velocityX, double velocityY)
 {
-  this->name = name;
+  setName(name); // new char[4];
+  //memcpy(this->name, name, 4);
   this->time = time; //time in microseconds
   this->x = x;
   this->y = y;
   this->velocityX = velocityX;
   this->velocityY = velocityY;
+}
+
+void Data::setName(char* name)
+{
+  n0 = name[0];
+  n1 = name[1];
+  n2 = name[2];
+  n3 = name[3];
+}
+
+string Data::getName() const
+{
+  // name = (string)(n0 + n1 + n2 + n3);
+  string s = "";
+  s += n0; s += n1; s+= n2; s+= n3;
+  return s;
 }
 
 NaoRobot::NaoRobot(char* name)
@@ -175,28 +196,30 @@ void NaoRobot::run()
     
     Data dataSending(name, now, distanceValSonarRight, distanceValSonarLeft, 3, 4); //!!! just using constatns for velocity right now. please set
     if (counter == 0)
-      cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.name << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.velocityX << " " << dataSending.velocityY << endl;
-    byte* byteArray = new byte[sizeof(dataSending)];
-    memcpy(byteArray, &dataSending, sizeof(dataSending)); //dest, source
+      cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.getName() << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.velocityX << " " << dataSending.velocityY << endl;
+    //byte* byteArray = new byte[sizeof(dataSending)];
+    //memcpy(byteArray, &dataSending, sizeof(dataSending)); //dest, source
     
-    emitter->send(byteArray, sizeof(dataSending));
+    emitter->send(&dataSending, sizeof(dataSending));
     
     if (receiver->getQueueLength()>0){ // will actually have to loop through the queue
-      int messageSize = receiver->getDataSize();
+      //int messageSize = receiver->getDataSize();
       //string messageR((const char*)receiver->getData());
-      const byte* byteArray;
-      byteArray = (const byte*) receiver->getData();
+      //const byte* byteArray;
+      //byteArray = (const byte*) receiver->getData();
+      const Data* d = (const Data*) receiver->getData();
       //cout << "byteArray: " << byteArray;
       
-      Data dataReceived;
-      memcpy(&dataReceived, byteArray, messageSize);
+      //Data dataReceived;
+      //memcpy(&dataReceived, byteArray, messageSize);
       
       now = getTime();
-      long ping = (now - dataReceived.time) / 1000;    
+      long ping = (now - d->time) / 1000;    
         
-      if (counter == 0) //print every few seconds instead of at each step
-        cout << sName << " received: (" << now << "): " << " " << dataReceived.time << " " << dataReceived.x << " " << dataReceived.y << " " << dataReceived.velocityX << " " << dataReceived.velocityY << "; ping: " << ping << "ms" << endl;
-
+      if (counter == 0) //print every few steps instead of at each step
+      {
+        cout << sName << " received: (" << now << "): " << d->getName()  << " " << d->time << " " << d->x << " " << d->y << " " << d->velocityX << " " << d->velocityY << "; ping: " << ping << "ms" << endl;
+      }
       receiver->nextPacket();
     }
   }   
