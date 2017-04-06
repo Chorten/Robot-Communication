@@ -11,6 +11,17 @@
 //#ifdef _WIN32
 //#include <webots/HandWave.motion>
 
+
+/* TODO:  - Wrap emitter & receiver into functions
+          - map sensors to real values
+          - put receiver in for loop
+          - use chrono for time so it is OS independent
+          - ping appears to get progressively large?...
+          - name does not apear when in recieved message because should use copy instead of memcpy because copy constructor is not called
+          - should probably recieve and then send (right now other way around)
+*/
+
+
 #include <webots/Keyboard.hpp>
 #include <webots/utils/Motion.hpp>
 #include <webots/Robot.hpp>
@@ -20,6 +31,11 @@
 #include <webots/Motor.hpp>
 #include <webots/DistanceSensor.hpp>
 #include <webots/PositionSensor.hpp>
+#include <sys/time.h>
+#include <unistd.h>
+#include <cstring>
+//#include <ctime>
+//#include <chrono>
 
 //#else
 //#include </home/viruszer0/Desktop/Webots/include/controller/c/webots/differential_wheels.h>
@@ -28,6 +44,7 @@
 using namespace webots;
 using namespace std;
 
+typedef unsigned char byte;
 
 class NaoRobot : public Robot
 {
@@ -39,13 +56,37 @@ class NaoRobot : public Robot
     char* name;
     Receiver* receiver;
     Emitter* emitter;
-    DistanceSensor *distanceSensor1;
-    DistanceSensor *distanceSensor2;
-    PositionSensor *positionSensor1;
-    PositionSensor *positionSensor2;
+    DistanceSensor *distanceSensorSonarRight;
+    DistanceSensor *distanceSensorSonarLeft;
+    PositionSensor *positionSensorHeadYawS;
+    PositionSensor *positionSensorHeadPitchS;
     PositionSensor *positionSensor3;
     PositionSensor *positionSensor4;
+    long getTime();
 };
+
+class Data
+{
+  public:
+    char* name; //pointer is fine because we are never changing the name.
+    long time; //time in microseconds
+    double x;
+    double y;
+    double velocityX;
+    double velocityY;
+    
+    Data(char* name = NULL, long time = 0, double x = 0, double y = 0, double velocityX = 0, double velocityY = 0);
+};
+
+Data::Data(char* name, long time, double x, double y, double velocityX, double velocityY)
+{
+  this->name = name;
+  this->time = time; //time in microseconds
+  this->x = x;
+  this->y = y;
+  this->velocityX = velocityX;
+  this->velocityY = velocityY;
+}
 
 NaoRobot::NaoRobot(char* name)
 {
@@ -54,14 +95,23 @@ NaoRobot::NaoRobot(char* name)
   emitter = getEmitter("emitter");
   receiver = getReceiver("receiver");
   receiver->enable(timeStep);
-  distanceSensor1 = getDistanceSensor("Sonar/Right");
-  distanceSensor2 = getDistanceSensor("Sonar/Left");
-  positionSensor1 = getPositionSensor("HeadYawS");
-  positionSensor2 = getPositionSensor("HeadPitchS");
+  distanceSensorSonarRight = getDistanceSensor("Sonar/Right");
+  distanceSensorSonarLeft = getDistanceSensor("Sonar/Left");
+  positionSensorHeadYawS = getPositionSensor("HeadYawS"); // is there an x and y?... !!! right now using this is as x
+  positionSensorHeadPitchS = getPositionSensor("HeadPitchS"); // using this as y
   positionSensor3 = getPositionSensor("RShoulderPitchS");
   positionSensor4 = getPositionSensor("RShoulderRollS");
-  distanceSensor1->enable(timeStep);
-  distanceSensor2->enable(timeStep);
+  distanceSensorSonarRight->enable(timeStep);
+  distanceSensorSonarLeft->enable(timeStep);
+}
+
+long NaoRobot::getTime()
+{
+  timeval tv1;
+  gettimeofday(&tv1, 0);
+  time_t now_sec = tv1.tv_sec;
+  suseconds_t now_usec = tv1.tv_usec;
+  return now_sec * 1000000 + now_usec;
 }
 
 void NaoRobot::run()
@@ -90,19 +140,64 @@ void NaoRobot::run()
   string sName(name);
   string stringMessageS = "Hello, my name is " + sName;
   const char* messageS = stringMessageS.c_str();
+
+  //cout << sName << "; time: " << now_sec << " " << now_usec << endl;
+  //sleep(2);
   
-  emitter->send(messageS, 22);
+  //long now = getTime();
+  //Data d1(name, now, 1, 2, 3, 4);
+  //cout << sName << " sending:  (" << d1.time << "): " << d1.x << " " << d1.y << " " << d1.velocityX << " " << d1.velocityY << endl;
   
+  //byte* byteArray = new byte[sizeof(d1)];
+  //memcpy(byteArray, &d1, sizeof(d1)); //dest, source
+  
+  //milliseconds now = duration_cast< milliseconds >(
+  //system_clock::now().time_since_epoch());
+  //cout << now << endl;
+  //emitter->send(messageS, 22);
+  //emitter->send(byteArray, sizeof(d1));
+  
+  int counter = 0;
+  long now;
+  double distanceValSonarRight, distanceValSonarLeft, positionValHeadYawS, positionValHeadPitchS;
   while(step(timeStep) != -1)
   {
-    double distanceVal1 = distanceSensor1->getValue();
-    double distanceVal2 = distanceSensor2->getValue();
+    counter++;
+    if (counter == 20)
+      counter = 0;
+  
+    distanceValSonarRight = distanceSensorSonarRight->getValue(); //!!! using this as "x"... !!!
+    distanceValSonarLeft  = distanceSensorSonarLeft->getValue(); //!!! using this as "y"... !!!
+    positionValHeadYawS = positionSensorHeadYawS->getValue();
+    positionValHeadPitchS = positionSensorHeadPitchS->getValue();
     
-    if (receiver->getQueueLength()>0){
-      string messageR((const char*)receiver->getData());
-      receiver->nextPacket();
+    now = getTime();
+    
+    Data dataSending(name, now, distanceValSonarRight, distanceValSonarLeft, 3, 4); //!!! just using constatns for velocity right now. please set
+    if (counter == 0)
+      cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.name << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.velocityX << " " << dataSending.velocityY << endl;
+    byte* byteArray = new byte[sizeof(dataSending)];
+    memcpy(byteArray, &dataSending, sizeof(dataSending)); //dest, source
+    
+    emitter->send(byteArray, sizeof(dataSending));
+    
+    if (receiver->getQueueLength()>0){ // will actually have to loop through the queue
+      int messageSize = receiver->getDataSize();
+      //string messageR((const char*)receiver->getData());
+      const byte* byteArray;
+      byteArray = (const byte*) receiver->getData();
+      //cout << "byteArray: " << byteArray;
+      
+      Data dataReceived;
+      memcpy(&dataReceived, byteArray, messageSize);
+      
+      now = getTime();
+      long ping = (now - dataReceived.time) / 1000;    
+        
+      if (counter == 0) //print every few seconds instead of at each step
+        cout << sName << " received: (" << now << "): " << " " << dataReceived.time << " " << dataReceived.x << " " << dataReceived.y << " " << dataReceived.velocityX << " " << dataReceived.velocityY << "; ping: " << ping << "ms" << endl;
 
-      cout << name << " received: " << messageR << endl;
+      receiver->nextPacket();
     }
   }   
 }
@@ -130,8 +225,7 @@ int main(int argc, char **argv)
   //move->setVelocity(100);
   //Keyboard().enable(10);
   //robot-> step(50);
-  
-  // Enter here exit cleanup code.
+
 
   delete robot;
   return 0;
