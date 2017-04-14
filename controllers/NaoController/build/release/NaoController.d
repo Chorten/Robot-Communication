@@ -1,4 +1,4 @@
-build/release/NaoEmitter.o: NaoEmitter.cpp \
+build/release/NaoController.o: NaoController.cpp \
  /home/viruszer0/Desktop/webots/include/controller/cpp/webots/Keyboard.hpp \
  /home/viruszer0/Desktop/webots/include/controller/cpp/webots/utils/Motion.hpp \
  /home/viruszer0/Desktop/webots/include/controller/cpp/webots/utils/../../../c/webots/types.h \
@@ -10,4 +10,6 @@ build/release/NaoEmitter.o: NaoEmitter.cpp \
  /home/viruszer0/Desktop/webots/include/controller/cpp/webots/Camera.hpp \
  /home/viruszer0/Desktop/webots/include/controller/cpp/webots/Motor.hpp \
  /home/viruszer0/Desktop/webots/include/controller/cpp/webots/DistanceSensor.hpp \
- /home/viruszer0/Desktop/webots/include/controller/cpp/webots/PositionSensor.hpp
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/PositionSensor.hpp \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/GPS.hpp \
+ ../Data.h

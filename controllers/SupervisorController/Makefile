@@ -57,6 +57,6 @@
 space :=
 space +=
 CFLAGS += -std=c++11
-CXX_SOURCES += ../Data.cpp BallController.cpp
+CXX_SOURCES += ../Data.cpp SupervisorController.cpp
 WEBOTS_HOME_PATH=$(subst $(space),\ ,$(strip $(subst \,/,$(WEBOTS_HOME))))
 include $(WEBOTS_HOME_PATH)/resources/Makefile.include

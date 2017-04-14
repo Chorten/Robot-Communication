@@ -11,10 +11,14 @@ Background {
     0.4 0.7 1
   ]
 }
-Robot {
+DEF ball Robot {
   translation -0.83509697 0.096712637 1.4327131
   rotation 0.10721674 0.80650476 -0.58142466 -2.6580738
   children [
+    GPS {
+    }
+    Emitter {
+    }
     Shape {
       appearance Appearance {
         material Material {
@@ -33,6 +37,8 @@ Robot {
   }
   physics Physics {
   }
+  controller "BallController"
+  controllerArgs "ball"
   linearVelocity -0.0066297811 2.4120996e-15 -0.006339312
   angularVelocity -0.06339312 0.0085271837 0.066297811
 }
@@ -42,9 +48,6 @@ DirectionalLight {
   castShadows TRUE
 }
 RobotstadiumSoccerField {
-}
-Supervisor {
-  translation 0 0.27 0
 }
 Nao {
   hidden position_0_0 -6.87635e-10
@@ -173,7 +176,7 @@ Nao {
   hidden angularVelocity_58 -0.140397 0.000383627 0.0005401
   translation -1.3446979 0.30489104 1.5145538
   rotation 0.99999542 0.00020607328 0.0030211241 -1.6056281
-  controller "NaoEmitter"
+  controller "NaoController"
   controllerArgs "0001"
 }
 Nao {
@@ -303,7 +306,7 @@ Nao {
   hidden angularVelocity_58 -0.0506736 -3.18799e-05 -0.100649
   translation -0.90995542 0.33209077 0.81059855
   rotation 0.76700709 0.44825952 0.45908988 -1.8579669
-  controller "NaoEmitter"
+  controller "NaoController"
   controllerArgs "0002"
 }
 Nao {
@@ -433,6 +436,15 @@ Nao {
   hidden angularVelocity_58 0.0733649 1.77604e-05 -0.0821525
   translation -0.40491759 0.33322033 1.6973454
   rotation 0.31432177 0.66281686 0.67961432 -2.5479162
-  controller "NaoEmitter"
+  controller "NaoController"
   controllerArgs "0003"
+}
+Supervisor {
+  children [
+    Emitter {
+    }
+    Receiver {
+    }
+  ]
+  controller "SupervisorController"
 }

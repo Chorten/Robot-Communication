@@ -18,8 +18,13 @@
 #include <webots/Receiver.hpp>
 #include <webots/Camera.hpp>
 #include <webots/Motor.hpp>
+#include <webots/GPS.hpp>
 #include <webots/DistanceSensor.hpp>
 #include <webots/PositionSensor.hpp>
+#include <cstring>
+#include <unistd.h>
+#include <chrono>
+#include <../Data.h>
 
 //#else
 //#include </home/viruszer0/Desktop/Webots/include/controller/c/webots/differential_wheels.h>
@@ -27,84 +32,91 @@
 
 using namespace webots;
 using namespace std;
+using namespace chrono;
 
+enum Channel
+{
+  channelSupervisor = 1,
+  channelGeneral = 2
+};
+
+size_t MessageID = 1;
 
 class Ball : public Robot
 {
   public:
-    NaoRobot(char* name);
+    static const size_t nameSize = 4;
+    Ball(char* name);
     void run();
   private:
     int timeStep;
     char* name;
-    Receiver* receiver;
     Emitter* emitter;
-    DistanceSensor *distanceSensor1;
-    DistanceSensor *distanceSensor2;
-    PositionSensor *positionSensor1;
-    PositionSensor *positionSensor2;
-    PositionSensor *positionSensor3;
-    PositionSensor *positionSensor4;
+    GPS* gps;
+    long getTime();
 };
 
-NaoRobot::NaoRobot(char* name)
+Ball::Ball(char* name)
 {
-  timeStep = 32;
+  // defaults:
+    // timeStep (line below): 32
+    // WorldInfo, basicTimeStep: 16
+    // WOrldInfo, FPS: 60
+  timeStep = 16;
+  // 32,16,60  - ping ~190 (double for second messages)
+  // 8,16,60   - ping ~95
+  // 8,16,30   - ping ~95
+  // 8,4,30    - ping ~110
+  // 8,64,30   - ping ~95
+  // 4,16,60   - ping ~90
+  // 1,16,60   - ping ~85
+  // 16,16,60  - ping ~95
   this->name = name;
+  gps = new GPS("gps");
+  gps->enable(100);
   emitter = getEmitter("emitter");
-  receiver = getReceiver("receiver");
-  receiver->enable(timeStep);
-  distanceSensor1 = getDistanceSensor("Sonar/Right");
-  distanceSensor2 = getDistanceSensor("Sonar/Left");
-  positionSensor1 = getPositionSensor("HeadYawS");
-  positionSensor2 = getPositionSensor("HeadPitchS");
-  positionSensor3 = getPositionSensor("RShoulderPitchS");
-  positionSensor4 = getPositionSensor("RShoulderRollS");
-  distanceSensor1->enable(timeStep);
-  distanceSensor2->enable(timeStep);
+  emitter->setChannel(channelGeneral);
 }
 
-void NaoRobot::run()
+void Ball::run()
 {
-
-  std::string filename = "/home/viruszer0/Desktop/Repo/Senior-Design-Project/controllers/motions/HandWave.motion";
-  Motion *handwave = new Motion(filename);
-  if (! handwave->isValid())
-  {
-    std::cout << "could not load file: " << filename << std::endl;
-    delete handwave;
-  }
-  handwave->setLoop(true);
-  handwave->play();
-  handwave->stop();
-  std::string filename2 = "/home/viruszer0/Desktop/Repo/Senior-Design-Project/controllers/motions/Forwards.motion";
-  Motion *walk = new Motion(filename2);
-  if (! walk->isValid())
-  {
-    std::cout << "could not load file: " << filename2 << std::endl;
-    delete walk;
-  }
-  walk->setLoop(true);
-  walk->play();
-  
   string sName(name);
-  string stringMessageS = "Hello, my name is " + sName;
-  const char* messageS = stringMessageS.c_str();
-  
-  emitter->send(messageS, 22);
+  int counter = 0;
+  size_t MessageID = 1;
+  long now;
   
   while(step(timeStep) != -1)
   {
-    double distanceVal1 = distanceSensor1->getValue();
-    double distanceVal2 = distanceSensor2->getValue();
-    
-    if (receiver->getQueueLength()>0){
-      string messageR((const char*)receiver->getData());
-      receiver->nextPacket();
-
-      cout << name << " received: " << messageR << endl;
+    counter++;
+    if (counter == 20)
+    {
+      cout << endl;
+      counter = 0;
     }
-  }   
+  
+    const double* loc = gps->getValues();
+    now = getTime();
+    
+    Data dataSending(MessageID, name, now, loc[0], loc[1], loc[2]); //!!! just using constatns for velocity right now. please set
+    if (counter == 0)
+      cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName() << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " " << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << endl;
+
+    emitter->send(&dataSending, sizeof(dataSending));
+    MessageID++;
+  }
+}
+
+long Ball::getTime()
+{
+  //std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+  auto nowC = high_resolution_clock::now();
+  long now = duration_cast<milliseconds>(nowC.time_since_epoch()).count();
+  return now;
+  //timeval tv1;
+  //gettimeofday(&tv1, 0);
+  //time_t now_sec = tv1.tv_sec;
+  //suseconds_t now_usec = tv1.tv_usec;
+  //return now_sec * 1000000 + now_usec;
 }
 
 
@@ -119,8 +131,8 @@ int main(int argc, char **argv)
 {
   char* name = argv[1];
   // create the Robot instance.
-  NaoRobot *robot = new NaoRobot(name);
-  robot->run();
+  Ball *ball = new Ball(name);
+  ball->run();
 
   // You should insert a getDevice-like function in order to get the
   // instance of a device of the robot. Something like:
@@ -133,6 +145,6 @@ int main(int argc, char **argv)
   
   // Enter here exit cleanup code.
 
-  delete robot;
+  delete ball;
   return 0;
 }
