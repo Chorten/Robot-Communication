@@ -43,10 +43,10 @@ enum Channel
 
 enum Role
 {
-	roleUndefined= 0;
-	roleAttacker = 1;
-	roleDefender = 2;
-	roleGoale = 3;
+	roleUndefined= 0,
+	roleAttacker = 1,
+	roleDefender = 2,
+	roleGoale = 3
 };
 
 size_t MessageID = 1;

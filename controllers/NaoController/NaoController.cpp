@@ -34,6 +34,7 @@
 #include <chrono>
 #include <../Data.h>
 #include <cmath>
+#include <../BallController/BallController.h>
 
 //#else
 //#include </home/viruszer0/Desktop/Webots/include/controller/c/webots/differential_wheels.h>
@@ -59,10 +60,10 @@ enum Channel
 
 enum Role
 {
-	roleUndefined= 0;
-	roleAttacker = 1;
-	roleDefender = 2;
-	roleGoale = 3;
+	roleUndefined= 0,
+	roleAttacker = 1,
+	roleDefender = 2,
+	roleGoale = 3
 };
 
 class NaoRobot : public Robot
@@ -73,7 +74,8 @@ class NaoRobot : public Robot
     bool Turn(double* loc,Ball *obj); //return true if angle is set
     void Move();
     void run();
-    class Ball
+    
+    class Ball2
       {
         private:
           double ball_x;
@@ -104,6 +106,7 @@ class NaoRobot : public Robot
     PositionSensor *positionSensor3;
     PositionSensor *positionSensor4;
     GPS* gps;
+    Gyro* gyro;
     long getTime();
 
     
@@ -141,7 +144,9 @@ NaoRobot::NaoRobot(char* name)
   distanceSensorSonarRight->enable(timeStep);
   distanceSensorSonarLeft->enable(timeStep);
   gps = new GPS("gps");
+  gyro = new Gyro("gyro"); //!!! might be wrong name
   gps->enable(100);
+  gyro->enable(100);
 }
 
 long NaoRobot::getTime()
@@ -220,10 +225,11 @@ void NaoRobot::run()
     positionValHeadYawS = positionSensorHeadYawS->getValue();
     positionValHeadPitchS = positionSensorHeadPitchS->getValue();
     const double* loc = gps->getValues();
+    const double* speed = gyro->getValues();
     
     now = getTime();
     
-    Data dataSending(MessageID, name, now, roleUndefined, loc[0], loc[1], loc[2], 3, 4, 5); //!!! just using constants for velocity right now. please set
+    Data dataSending(MessageID, name, now, roleUndefined, loc[0], loc[1], loc[2], speed[0], speed[1], speed[2]); //!!! just using constants for velocity right now. please set
     if (counter == 0)
       cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName() << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " " << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << endl;
     emitter->send(&dataSending, sizeof(dataSending));
