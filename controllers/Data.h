@@ -10,6 +10,7 @@ class Data
 	static const size_t NAME_SIZE = 4;
 	static const size_t MESSAGE_SIZE = 200;
     long time; //time in microseconds
+	int role;
     double x;
     double y;
     double z;
@@ -19,7 +20,7 @@ class Data
 	char message[MESSAGE_SIZE];
 	size_t messageSize;
     
-    Data(size_t messageID, char* name = NULL, long time = 0, double x = 0, double y = 0, double z = 0, double velocityX = 0, double velocityY = 0, double velocityZ = 0, char* message = "", size_t messageSize = 0);
+    Data(size_t messageID, char* name = NULL, int role = 0, long time = 0, double x = 0, double y = 0, double z = 0, double velocityX = 0, double velocityY = 0, double velocityZ = 0, char* message = "", size_t messageSize = 0);
     void setName(char* name);
 	void setMessage(char* message, size_t size);
     std::string getName() const;

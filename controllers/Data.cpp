@@ -1,11 +1,12 @@
 #include <../Data.h>
 
-Data::Data(size_t messageID, char* name, long time, double x, double y, double z, double velocityX, double velocityY, double velocityZ, char* message, size_t messageSize)
+Data::Data(size_t messageID, char* name, long time, int role, double x, double y, double z, double velocityX, double velocityY, double velocityZ, char* message, size_t messageSize)
 {
   this->messageID = messageID;
   setName(name); // new char[4];
   //memcpy(this->name, name, 4);
   this->time = time; //time in microseconds
+  this->role = role;
   this->x = x;
   this->y = y;
   this->z = z;

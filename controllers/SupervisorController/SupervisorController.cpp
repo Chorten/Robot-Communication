@@ -28,6 +28,15 @@ enum Channel
   channelGeneral = 2
 };
 
+
+enum Role
+{
+	roleUndefined= 0;
+	roleAttacker = 1;
+	roleDefender = 2;
+	roleGoale = 3;
+};
+
 class SupervisorServer : public Supervisor
 {
   public:
@@ -83,7 +92,7 @@ void SupervisorServer::run()
     //cout << "position of BALL: " << endl;
     // SUPERVISOR DISPLAYING BALL POSITION
     //cout << pos[0] << pos[1] << pos[2] << endl;
-    Data dataSending(messageID, "boss", now, 0, 0, 0, 0, 0, 0, "hello there! your supervisor here!", 34);
+    Data dataSending(messageID, "boss", now, roleUndefined, 0, 0, 0, 0, 0, 0, "hello there! your supervisor here!", 34);
     if (counter == 0)
       cout << "server" << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName() << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " " << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << " " << dataSending.getMessage() << endl;
     

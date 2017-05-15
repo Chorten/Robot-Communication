@@ -57,6 +57,14 @@ enum Channel
   channelGeneral = 2
 };
 
+enum Role
+{
+	roleUndefined= 0;
+	roleAttacker = 1;
+	roleDefender = 2;
+	roleGoale = 3;
+};
+
 class NaoRobot : public Robot
 {
   public:
@@ -215,7 +223,7 @@ void NaoRobot::run()
     
     now = getTime();
     
-    Data dataSending(MessageID, name, now, loc[0], loc[1], loc[2], 3, 4, 5); //!!! just using constants for velocity right now. please set
+    Data dataSending(MessageID, name, now, roleUndefined, loc[0], loc[1], loc[2], 3, 4, 5); //!!! just using constants for velocity right now. please set
     if (counter == 0)
       cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName() << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " " << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << endl;
     emitter->send(&dataSending, sizeof(dataSending));
