@@ -65,20 +65,6 @@ class NaoRobot : public Robot
     bool Turn(double* loc,Ball *obj); //return true if angle is set
     void Move();
     void run();
-
-  private:
-    int timeStep;
-    char* name;
-    Receiver* receiver;
-    Emitter* emitter;
-    DistanceSensor *distanceSensorSonarRight;
-    DistanceSensor *distanceSensorSonarLeft;
-    PositionSensor *positionSensorHeadYawS;
-    PositionSensor *positionSensorHeadPitchS;
-    PositionSensor *positionSensor3;
-    PositionSensor *positionSensor4;
-    GPS* gps;
-    long getTime();
     class Ball
       {
         private:
@@ -96,8 +82,23 @@ class NaoRobot : public Robot
             id = "ball";
             return id;
           }
-           
-      };
+       };
+
+  private:
+    int timeStep;
+    char* name;
+    Receiver* receiver;
+    Emitter* emitter;
+    DistanceSensor *distanceSensorSonarRight;
+    DistanceSensor *distanceSensorSonarLeft;
+    PositionSensor *positionSensorHeadYawS;
+    PositionSensor *positionSensorHeadPitchS;
+    PositionSensor *positionSensor3;
+    PositionSensor *positionSensor4;
+    GPS* gps;
+    long getTime();
+
+    
 };
 
 
@@ -156,7 +157,7 @@ bool NaoRobot::Turn(double* loc, Ball *obj)
   double myPosY = loc[1];
   double result; //acos
   string rotate;
-  result = acos((ballPosY - myPosY)/(ballPosX - myPosX));
+  result = atan((ballPosX - myPosX)/(ballPosY - myPosY));
   //Assuming a 20 degree freedom
   //if(result >0.0 && result <20.0) rotate = ;
   Motion *turn = new Motion(rotate);
@@ -168,7 +169,7 @@ bool NaoRobot::Turn(double* loc, Ball *obj)
   turn->setLoop(true);
   turn->play();
   turn->setLoop(false);
-  
+  return true;
 }
 
 
@@ -182,7 +183,6 @@ void NaoRobot::Move()
   }
   walk->setLoop(true);
   walk->play();
-  Turn = true;
   
 }
 
@@ -232,10 +232,12 @@ void NaoRobot::run()
           cout << sName << " received: (" << now << "): " << d->messageID << " " << d->getName()  << " " << d->time << " " << d->x << " " << d->y <<  " " << d->z << " " << d->velocityX << " " << d->velocityY << " " << d->velocityZ << " " << d->getMessage() << "; ping: " << ping << "ms" << endl;
         //if (counter % 2 == 0)
         //  delete d; 
-        if(d->getName() == newball->getid())
+        cout<<"Ball : "<< d->getName()<<endl;
+        if(d->getName() == "ball")
         {
-          newball->setPos(d->x, d->y);
-          while(!Turn(loc,newball)) continue; //return true if angle is set
+          //newball->setPos(d->x, d->y);
+          cout << "\nBall's new position "<< newball->getx() <<" " <<newball->gety()<<endl;
+          //while(!Turn(loc,newball)) continue; //return true if angle is set
         }
         
         receiver->nextPacket();
