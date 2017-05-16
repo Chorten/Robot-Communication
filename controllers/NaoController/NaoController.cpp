@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <chrono>
 #include <../Data.h>
+#include <cmath>
 
 //#else
 //#include </home/viruszer0/Desktop/Webots/include/controller/c/webots/differential_wheels.h>
@@ -41,6 +42,14 @@
 using namespace webots;
 using namespace std;
 using namespace chrono;
+
+string filename1 = "/home/chorten/Documents/Senior-Design-Project/controllers/motions/HandWave.motion";
+string filename2 = "/home/chorten/Documents/Senior-Design-Project/controllers/motions/Forwards.motion";
+string right60 = "/home/chorten/Documents/Senior-Design-Project/controllers/motions/TurnRight60.motion";
+string right40 = "/home/chorten/Documents/Senior-Design-Project/controllers/motions/TurnRight40.motion";
+string left40 = "/home/chorten/Documents/Senior-Design-Project/controllers/motions/TurnLeft40.motion";
+string left60 = "/home/chorten/Documents/Senior-Design-Project/controllers/motions/TurnLeft60.motion";
+string left180 = "/home/chorten/Documents/Senior-Design-Project/controllers/motions/TurnLeft180.motion";
 
 enum Channel
 {
@@ -53,7 +62,10 @@ class NaoRobot : public Robot
   public:
     static const size_t nameSize = 4;
     NaoRobot(char* name);
+    bool Turn(double* loc,Ball *obj); //return true if angle is set
+    void Move();
     void run();
+
   private:
     int timeStep;
     char* name;
@@ -67,7 +79,28 @@ class NaoRobot : public Robot
     PositionSensor *positionSensor4;
     GPS* gps;
     long getTime();
+    class Ball
+      {
+        private:
+          double ball_x;
+          double ball_y;
+          string id;
+        public:
+          double getx(){return ball_x;}
+          double gety(){return ball_y;}
+          void setPos(double x, double y){
+            ball_x = x;
+            ball_y = y;
+          }
+          string getid(){
+            id = "ball";
+            return id;
+          }
+           
+      };
 };
+
+
 
 NaoRobot::NaoRobot(char* name)
 {
@@ -115,28 +148,47 @@ long NaoRobot::getTime()
   //return now_sec * 1000000 + now_usec;
 }
 
-void NaoRobot::run()
+bool NaoRobot::Turn(double* loc, Ball *obj)
 {
-  std::string filename = "/home/viruszer0/Desktop/Repo/Senior-Design-Project/controllers/motions/HandWave.motion";
-  Motion *handwave = new Motion(filename);
-  if (! handwave->isValid())
+  double ballPosX = obj->getx();
+  double ballPosY = obj->gety();
+  double myPosX = loc[0];
+  double myPosY = loc[1];
+  double result; //acos
+  string rotate;
+  result = acos((ballPosY - myPosY)/(ballPosX - myPosX));
+  //Assuming a 20 degree freedom
+  //if(result >0.0 && result <20.0) rotate = ;
+  Motion *turn = new Motion(rotate);
+  if (! turn->isValid())
   {
-    std::cout << "could not load file: " << filename << std::endl;
-    delete handwave;
+    cout << "could not load file: " << filename2 << std::endl;
+    delete walk;
   }
-  handwave->setLoop(true);
-  handwave->play();
-  handwave->stop();
-  std::string filename2 = "/home/viruszer0/Desktop/Repo/Senior-Design-Project/controllers/motions/Forwards.motion";
+  turn->setLoop(true);
+  turn->play();
+  turn->setLoop(false);
+  
+}
+
+
+void NaoRobot::Move()
+{
   Motion *walk = new Motion(filename2);
   if (! walk->isValid())
   {
-    std::cout << "could not load file: " << filename2 << std::endl;
+    cout << "could not load file: " << filename2 << std::endl;
     delete walk;
   }
   walk->setLoop(true);
   walk->play();
+  Turn = true;
   
+}
+
+void NaoRobot::run()
+{
+  Ball *newball = new Ball();
   string sName(name);
   
   int counter = 0;
@@ -146,6 +198,7 @@ void NaoRobot::run()
   double distanceValSonarRight, distanceValSonarLeft, positionValHeadYawS, positionValHeadPitchS;
   while(step(timeStep) != -1)
   {
+    Move();
     counter++;
     receiver->setChannel(channel);
     channel = (channel == channelGeneral ? channelSupervisor : channelGeneral); // doesnt work...
@@ -179,13 +232,19 @@ void NaoRobot::run()
           cout << sName << " received: (" << now << "): " << d->messageID << " " << d->getName()  << " " << d->time << " " << d->x << " " << d->y <<  " " << d->z << " " << d->velocityX << " " << d->velocityY << " " << d->velocityZ << " " << d->getMessage() << "; ping: " << ping << "ms" << endl;
         //if (counter % 2 == 0)
         //  delete d; 
+        if(d->getName() == newball->getid())
+        {
+          newball->setPos(d->x, d->y);
+          while(!Turn(loc,newball)) continue; //return true if angle is set
+        }
+        
         receiver->nextPacket();
       }
+      //check for ball location
     }
     //cout << "channel (below): " << receiver->getChannel() << " " << channel << endl;
   }   
 }
-
 
 // This is the main program of your controller.
 // It creates an instance of your Robot instance, launches its
