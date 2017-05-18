@@ -20,6 +20,8 @@ DEF ball Robot {
     Emitter {
       channel 2
     }
+    Gyro {
+    }
     Shape {
       appearance Appearance {
         material Material {
@@ -178,7 +180,7 @@ Nao {
   translation -1.3456314 0.33325079 1.5261191
   rotation 0.99999734 0.0015664576 0.0016905701 -1.5710057
   controller "NaoController"
-  controllerArgs "0001"
+  controllerArgs "robo"
 }
 Nao {
   hidden position_0_0 -8.60864e-10

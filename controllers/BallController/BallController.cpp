@@ -19,6 +19,7 @@
 #include <webots/Camera.hpp>
 #include <webots/Motor.hpp>
 #include <webots/GPS.hpp>
+#include <webots/Gyro.hpp>
 #include <webots/DistanceSensor.hpp>
 #include <webots/PositionSensor.hpp>
 #include <cstring>
@@ -40,13 +41,13 @@ enum Channel
   channelGeneral = 2
 };
 
-
 enum Role
 {
-	roleUndefined= 0,
-	roleAttacker = 1,
-	roleDefender = 2,
-	roleGoale = 3
+  roleUndefined= 0,
+  roleAttacker = 1,
+  roleDefender = 2,
+  roleGoale = 3,
+  roleNone = 4
 };
 
 size_t MessageID = 1;
@@ -62,6 +63,7 @@ class Ball : public Robot
     char* name;
     Emitter* emitter;
     GPS* gps;
+    Gyro* gyro;
     long getTime();
 };
 
@@ -82,7 +84,9 @@ Ball::Ball(char* name)
   // 16,16,60  - ping ~95
   this->name = name;
   gps = new GPS("gps");
+  gyro = new Gyro("gyro");
   gps->enable(100);
+  gyro->enable(100);
   emitter = getEmitter("emitter");
   emitter->setChannel(channelGeneral);
 }
@@ -104,9 +108,10 @@ void Ball::run()
     }
   
     const double* loc = gps->getValues();
+    const double* speed = gyro->getValues();
     now = getTime();
     
-    Data dataSending(MessageID, name, now, roleUndefined, loc[0], loc[1], loc[2]); //!!! just using constatns for velocity right now. please set
+    Data dataSending(MessageID, name, now, roleUndefined, loc[0], loc[1], loc[2], speed[0], speed[1], speed[2]);
     if (counter == 0)
       cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName() << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " " << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << endl;
 

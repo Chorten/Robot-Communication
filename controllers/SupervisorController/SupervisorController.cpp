@@ -28,13 +28,13 @@ enum Channel
   channelGeneral = 2
 };
 
-
 enum Role
 {
-	roleUndefined= 0,
-	roleAttacker = 1,
-	roleDefender = 2,
-	roleGoale = 3
+  roleUndefined= 0,
+  roleAttacker = 1,
+  roleDefender = 2,
+  roleGoale = 3,
+  roleNone = 4
 };
 
 class SupervisorServer : public Supervisor
