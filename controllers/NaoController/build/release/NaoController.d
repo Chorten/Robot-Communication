@@ -13,4 +13,6 @@ build/release/NaoController.o: NaoController.cpp \
  /home/viruszer0/Desktop/webots/include/controller/cpp/webots/PositionSensor.hpp \
  /home/viruszer0/Desktop/webots/include/controller/cpp/webots/GPS.hpp \
  /home/viruszer0/Desktop/webots/include/controller/cpp/webots/Gyro.hpp \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/Compass.hpp \
+ /home/viruszer0/Desktop/webots/include/controller/cpp/webots/InertialUnit.hpp \
  ../Data.h

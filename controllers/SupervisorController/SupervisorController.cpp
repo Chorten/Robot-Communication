@@ -76,6 +76,7 @@ void SupervisorServer::run()
   // USE THE BELOW TO DIRECTLY GET LOCATIONS
   Node* ball_node = getFromDef("ball");
   Field* ball_position = ball_node->getField("translation");
+  
 
   while(step(timeStep) != -1)
   {
@@ -121,6 +122,16 @@ int main(int argc, char **argv)
 {
   SupervisorServer *server= new SupervisorServer();
 
+  //Robot *r = new Robot();
+  //int n_devices = r->getNumberOfDevices();
+  //int i;
+  //for(i=0; i<n_devices; i++) {
+  //  Device* tag = r->getDeviceByIndex(i);
+  //  const string name = tag->getName();
+  //  int type = tag->getNodeType();
+  //  printf("Device #%d name = %s\n", i, name);
+  //}
+  
   server->run();
 
   // Enter here exit cleanup code.

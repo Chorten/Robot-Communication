@@ -30,6 +30,8 @@
 #include <webots/PositionSensor.hpp>
 #include <webots/GPS.hpp>
 #include <webots/Gyro.hpp>
+#include <webots/Compass.hpp>
+#include <webots/InertialUnit.hpp>
 #include <cstring>
 #include <unistd.h>
 #include <chrono>
@@ -106,6 +108,8 @@ class NaoRobot : public Robot
     PositionSensor *positionSensor4;
     GPS* gps;
     Gyro* gyro;
+    Compass* compass;
+    InertialUnit* inertialUnit;
     Motion *turn;
     Motion *walk;
     long getTime();
@@ -144,6 +148,10 @@ NaoRobot::NaoRobot(char* name)
   gyro = new Gyro("gyro");
   gps->enable(100);
   gyro->enable(100);
+  compass = new Compass("compass");
+  compass->enable(100);
+  inertialUnit = new InertialUnit("inertial unit");
+  inertialUnit->enable(100);
 }
 
 long NaoRobot::getTime()
@@ -203,8 +211,10 @@ void NaoRobot::run()
   const Data* d;
   const double* loc;
   const double* speed;
+  const double* angles;
+  const double* inertia;
   
-  Move();
+  //Move();
   
   string rotate;
   turn = new Motion(rotate);
@@ -230,12 +240,14 @@ void NaoRobot::run()
     //positionValHeadPitchS = positionSensorHeadPitchS->getValue();
     loc = gps->getValues();
     speed = gyro->getValues();
+    angles = compass->getValues();
+    inertia = inertialUnit->getRollPitchYaw();
     
     now = getTime();
     
     Data dataSending(MessageID, name, now, roleUndefined, loc[0], loc[1], loc[2], speed[0], speed[1], speed[2]);
     if (counter == 0)
-      cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName() << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " " << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << endl;
+      cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName() << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " " << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << " angles: " << angles[0] << " " << angles[1] << " " << angles[2] << " inertia: " << inertia[0] << " " << inertia[1] << " " << inertia[2] << endl;
     emitter->send(&dataSending, sizeof(dataSending));
     MessageID++;
     if (receiver->getQueueLength()>0){
@@ -277,6 +289,12 @@ int main(int argc, char **argv)
   char* name = argv[1];
   // create the Robot instance.
   NaoRobot *robot = new NaoRobot(name);
+  
+  //string sName(name);  
+  //cout << sName << endl;
+  //if (sName != "0002")
+  //  return 0;
+  
   robot->run();
 
   // You should insert a getDevice-like function in order to get the
