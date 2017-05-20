@@ -206,7 +206,7 @@ Nao {
   hidden translation_59 0.019806793 0.007091108 -0.040462318
   hidden rotation_59 -1.0857698e-05 1.0114835e-06 1 -3.1415845
   translation -0.41143109 0.33247899 1.6922414
-  rotation -0.4462093 0.63272368 0.63289652 2.3014072
+  rotation 0.97143663 -0.16793155 -0.16765998 4.6840133
   controller "NaoController"
   controllerArgs "0003"
   channel 2

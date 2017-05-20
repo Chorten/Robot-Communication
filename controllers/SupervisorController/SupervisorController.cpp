@@ -51,7 +51,7 @@ class SupervisorServer : public Supervisor
 
 SupervisorServer::SupervisorServer()
 {
-  timeStep = 16;
+  timeStep = 64;
   emitter = getEmitter("emitter");
   emitter->setChannel(channelGeneral);
   receiver = getReceiver("receiver");
@@ -101,7 +101,7 @@ void SupervisorServer::run()
     messageID++;
     
     if (receiver->getQueueLength()>0){ // will actually have to loop through the queue
-      for (int i = 0; i <receiver-> getQueueLength(); i++)
+      while(receiver-> getQueueLength())
       {
         const Data* d = (const Data*) receiver->getData();
         

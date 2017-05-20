@@ -55,8 +55,9 @@ enum Role
   roleNone = 4
 };
 
-string filename1 = "../motions/HandWave.motion"; 
-string filename2 = "../motions/Forwards.motion"; 
+string motionHandWave = "../motions/HandWave.motion"; 
+string motionForward = "../motions/Forwards.motion"; 
+string motionForward50 = "../motions/Forwards50.motion"; 
 string right60 = "../motions/TurnRight60.motion"; 
 string right40 = "../motions/TurnRight40.motion"; 
 string left40 = "../motions/TurnLeft40.motion"; 
@@ -90,13 +91,16 @@ class NaoRobot : public Robot
     static const size_t nameSize = 4;
     NaoRobot(char* name);
     void run();
-    double getAngle(double myPosX, double myPosY, double ball_x, double ball_y); 
+    double getAngle(double myPosX, double myPosZ, double ball_x, double ball_y); 
     void rotate(double angle, string myDirect, string ballDirect); 
-    void move(string filename, bool loop); 
+    void move(string filename, bool loop, bool sync); 
     void setMotion(double angle, string ballDirect); 
-    string ballQuadrant(double x, double y, double myPosX, double myPosY); 
-    void setMyDirection(double anglex, double angley);
+    string ballQuadrant(double x, double y, double myPosX, double myPosZ); 
+    double setMyDirection(double anglex, double angley);
     bool ClosestToBall();
+    double getRobotAngle(double angleX, double angleY);
+    double getRobotFacingBallAngle(double robotX, double robotY, double ballX, double ballY);
+    void turnRobot(double initialAngle, double finalAngle);
     
   private:
     int timeStep;
@@ -106,16 +110,16 @@ class NaoRobot : public Robot
     GPS* gps;
     Gyro* gyro;
     Compass* compass;
-    InertialUnit* inertialUnit;
+    //InertialUnit* inertialUnit;
     Ball2 *newball;
     NaoRobot2* me;
     vector<NaoRobot2*> robots;
     long GetTime();
     string myDirection;
     string BallDirection;
-    Motion* walk; 
+    Motion* motion; 
     double myPosX; 
-    double myPosY; 
+    double myPosZ; 
     double myAngle; 
     
     void UpdateRobot(const Data* data);
@@ -129,7 +133,7 @@ NaoRobot::NaoRobot(char* name)
     // timeStep (line below): 32
     // WorldInfo, basicTimeStep: 16
     // WOrldInfo, FPS: 60
-  timeStep = 16;
+  timeStep = 64;
   // 32,16,60  - ping ~190 (double for second messages)
   // 8,16,60   - ping ~95
   // 8,16,30   - ping ~95
@@ -146,12 +150,12 @@ NaoRobot::NaoRobot(char* name)
   receiver->setChannel(channelGeneral);
   gps = new GPS("gps");
   gyro = new Gyro("gyro");
-  gps->enable(100);
-  gyro->enable(100);
+  gps->enable(timeStep);
+  gyro->enable(timeStep);
   compass = new Compass("compass");
-  compass->enable(100);
-  inertialUnit = new InertialUnit("inertial unit");
-  inertialUnit->enable(100);
+  compass->enable(timeStep);
+  //inertialUnit = new InertialUnit("inertial unit");
+  //inertialUnit->enable(timeStep);
 }
 
 long NaoRobot::GetTime()
@@ -161,22 +165,40 @@ long NaoRobot::GetTime()
   return now;
 }
 
-void NaoRobot::move(string filename, bool loop = false)
+void NaoRobot::move(string filename, bool loop = false, bool sync = true)
+// sync is default by true! so thread will sleep and will not gather data from sensors or anything
+// possible 
 {
-  walk = new Motion(filename);
-  if (! walk->isValid())
+  if (loop) sync = false;
+  
+  //check if last motion is still playing, if it is wait
+  //do {
+  //  step(timeStep);
+  //}
+  //while (!motion->isOver());
+  
+  motion = new Motion(filename);
+  if (! motion->isValid())
   {
     cout << "could not load file: " << filename << std::endl;
-    delete walk;
+    delete motion;
   }
-  walk->setLoop(loop);
-  walk->play();
-  //walk->setLoop(false);
+  motion->setLoop(loop);
+  motion->play();
+  cout << "MOTION " << filename << " STARTED\n";
+  if (sync)
+    do {
+      step(timeStep);
+    }
+    while (!motion->isOver());
+  cout << "MOTION " << filename << " STOPPED\n";
+
+  //motion->setLoop(false);
 }
 
-double NaoRobot::getAngle(double myPosX, double myPosY, double ball_x, double ball_y)
+double NaoRobot::getAngle(double myPosX, double myPosZ, double ball_x, double ball_y)
 {
-  return abs(atan((ball_x - myPosX)/(ball_y - myPosY))*180 / PI);
+  return abs(atan((ball_x - myPosX)/(ball_y - myPosZ))*180 / PI);
 }
 
 
@@ -242,8 +264,8 @@ void NaoRobot::setMotion(double angle, string ballDirect)
 {
   if(angle< 30)
   {
-    cout << "ANGLE IS LESS THAN 30!!\n";
-    move(filename2);
+    cout << "ANGLE IS LESS THAN 30!! walking...\n";
+    move(motionForward);
   }
   else if(angle>=30 && angle <50)//40
   {
@@ -307,27 +329,29 @@ void NaoRobot::setMotion(double angle, string ballDirect)
   
 }
 
-string NaoRobot::ballQuadrant(double x, double y, double myPosX, double myPosY)
+string NaoRobot::ballQuadrant(double x, double y, double myPosX, double myPosZ)
 {
-  cout<<"ballQuadrant: "<<x<<" "<<y<<" "<<myPosX<<" "<<myPosY<<endl;
+  cout<<"ballQuadrant: "<<x<<" "<<y<<" "<<myPosX<<" "<<myPosZ<<endl;
   if(x>=myPosX)
   {
     cout<<" ball here 1"<<endl;
-    if(y>=myPosY) return NE;
-    else if (y<myPosY) return SE;
+    if(y>=myPosZ) return NE;
+    else if (y<myPosZ) return SE;
   }
-  else if(x<myPosY)
+  else if(x<myPosZ)
   {
     cout<<" ball here 2"<<endl;
-    if(y>=myPosY) return NW;
-    else if (y<myPosY) return SW;
+    if(y>=myPosZ) return NW;
+    else if (y<myPosZ) return SW;
   }
   else return "Error";
 }
 
-void NaoRobot::setMyDirection(double anglex, double angley)
+double NaoRobot::setMyDirection(double anglex, double angley)
 {
-  double rad = atan(anglex/angley) *180/PI;
+  double rad = atan2(angley,anglex) *180/PI; // had as x/y
+  //return rad < 0 ? rad + 360 : rad;
+  
   if(rad>=0.0)
   {
     if(rad<=45.0) rad = rad + 360;
@@ -344,6 +368,52 @@ void NaoRobot::setMyDirection(double anglex, double angley)
     if(rad < -225 && rad >= -315) myDirection = NORTH;
     if(rad < -315 && rad >= -405) myDirection = EAST;
   }
+  return rad;
+}
+
+double NaoRobot::getRobotAngle(double angleX, double angleY)
+{
+  double rad = atan2(angleY,angleX) *180/PI;
+  return rad < 0 ? rad + 360 : rad;
+}
+
+double NaoRobot::getRobotFacingBallAngle(double robotX, double robotY, double ballX, double ballY)
+{
+  double rad = atan2(ballY - robotY, ballX - robotX) *180/PI;
+  return rad < 0 ? rad + 360 : rad;
+}
+
+void NaoRobot::turnRobot(double initialAngle, double finalAngle)
+{
+  double turnAngle = finalAngle - initialAngle;
+  if (turnAngle > 0) // if positive turn left
+  {
+    if(turnAngle< 30)
+      cout << "ANGLE IS LESS THAN 30!!\n";
+    else if(turnAngle>=30 && turnAngle<50)
+      move(left40);
+    else if(turnAngle>=50 && turnAngle <70)
+      move(left60);
+    else
+    {
+      move(left60);
+      turnRobot(initialAngle - 60, finalAngle);
+    }
+  }
+  else // if negative turn right
+  {
+    if(-turnAngle< 30)
+      cout << "ANGLE IS LESS THAN 30!!\n";
+    else if(-turnAngle>=30 && -turnAngle<50)
+      move(right40);
+    else if(-turnAngle>=50 && -turnAngle <70)
+      move(right60);
+    else
+    {
+      move(right60);
+      turnRobot(initialAngle - 60, finalAngle);
+    }
+  }  
 }
 
 double NaoRobot::Distance(double x1, double z1, double x2, double z2)
@@ -357,7 +427,7 @@ bool NaoRobot::ClosestToBall()
   // check distance from ball for self
   double myDistance = Distance(me->x, me->z, newball->getx(), newball->getz());
   
-  cout << "My distance: " << myDistance << "; x, z: " << me->x << me->z << " ; ball x, z" << newball->getx() << " " << newball->getz() << endl;
+  //cout << "My distance: " << myDistance << "; x, z: " << me->x << me->z << " ; ball x, z" << newball->getx() << " " << newball->getz() << endl;
   if (myDistance > 9999 || myDistance < -9999 || myDistance != myDistance) // has not finished initializing
     return false;
   
@@ -365,7 +435,7 @@ bool NaoRobot::ClosestToBall()
   for(int i = 0; i < robots.size(); i++)
   {
     double distanceI = Distance(robots[i]->x, robots[i]->z, newball->getx(), newball->getz());
-    cout << robots[i]->name + "'s distance to ball: " << distanceI << endl;
+    //cout << robots[i]->name + "'s distance to ball: " << distanceI << endl;
     if (distanceI > 9999 || distanceI < -9999 || distanceI != distanceI) // has not finished initializing // !!! not working properly...
       return false;
     if(distanceI < myDistance)
@@ -435,7 +505,7 @@ void NaoRobot::run()
   me = new NaoRobot2(sName);
   
   int counter = 0;
-  bool init = false;
+  //bool init = false;
   size_t MessageID = 1;
   size_t channel = channelGeneral;
   newball = new Ball2();
@@ -452,7 +522,8 @@ void NaoRobot::run()
       robots.push_back(new NaoRobot2(robotNames[i]));
     }
     
-  //move(filename2, true);
+  //move(motionForward, false);
+  
     
   while(step(timeStep) != -1)
   {
@@ -462,29 +533,36 @@ void NaoRobot::run()
     if (counter == 20)
     {
       counter = 0;
-      init = true;
+      //init = true;
     }
   
     loc = gps->getValues();
     speed = gyro->getValues();
     angles = compass->getValues();
-    inertia = inertialUnit->getRollPitchYaw();
+    //inertia = inertialUnit->getRollPitchYaw();
     
-    myPosX = loc[2]; 
-    myPosY = loc[0]; 
+    myPosX = loc[0]; // !!!c - was loc[2]
+    myPosZ = loc[2]; // !!!c - was loc[0]
     
     now = GetTime();
     
     Data dataSending(MessageID, name, now, roleUndefined, loc[0], loc[1], loc[2], speed[0], speed[1], speed[2]);
     if (counter == 0)
-      cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName() << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " " << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << " angles: " << angles[0] << " " << angles[1] << " " << angles[2] << " inertia: " << inertia[0] << " " << inertia[1] << " " << inertia[2] << endl;
+      cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName()
+        << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " "
+        << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << " angles: " << angles[0]
+        << " " << angles[1] << " " << angles[2] << endl;
+       //<< " inertia: " << inertia[0] << " " << inertia[1] << " " << inertia[2] << endl;
     emitter->send(&dataSending, sizeof(dataSending));
     
     UpdateSelf(dataSending);
     
     MessageID++;
-    if (receiver->getQueueLength()>0){
-      for (int i = 0; i <receiver-> getQueueLength(); i++)
+    if (receiver->getQueueLength()>0)
+    {
+      if (counter == 0)
+        cout << "reciever  queue length: " << receiver->getQueueLength() << endl;
+      while(receiver-> getQueueLength())
       {
         d = (const Data*) receiver->getData();
         UpdateRobot(d);
@@ -499,19 +577,17 @@ void NaoRobot::run()
         {
             newball->setPos(d->x, d->z); // !!! isnt it d->z, d->x
             
-            BallDirection = ballQuadrant(newball->getx(), newball->getz(), myPosX, myPosY);
-            
-            setMyDirection(angles[0], angles[1]);
-            myAngle = getAngle(myPosX, myPosY, newball->getx(), newball->getz());
-            rotate(myAngle,myDirection, BallDirection);
-            //move(filename2); //C!!!
+            //BallDirection = ballQuadrant(newball->getx(), newball->getz(), myPosX, myPosZ);
+
+            //myAngle = getAngle(myPosX, myPosZ, newball->getx(), newball->getz());
+            //rotate(myAngle,myDirection, BallDirection);
+            //move(motionForward); //C!!!
             if(counter == 0)
             {
-              cout<<"My position: "<<myPosX <<" "<<myPosY<<endl;
-              cout<< "Ball's position: "<<newball->getx()<<" "<<newball->getz()<<endl;
-              cout<<"Ball's direction: "<<BallDirection<<endl;
+              //cout<<"My position: "<<myPosX <<" "<<myPosZ<<endl;
+              //cout<< "Ball's position: "<<newball->getx()<<" "<<newball->getz()<<endl;
+              //cout<<"Ball's direction: "<<BallDirection<<endl;
             }
-          
         }
         receiver->nextPacket();
       }
@@ -519,9 +595,22 @@ void NaoRobot::run()
     
     // process data
     bool close = ClosestToBall();
-    cout << me->name << " close to ball: " << close << endl;
-    if (close && init)
-      move(filename2, true);
+    //cout << me->name << " close to ball: " << close << endl;
+    if (close) // if you are closest to ball
+    {
+      // calculate 
+      double myAngle = getRobotAngle(angles[1], angles[0]);
+      double myFinalAngle = getRobotFacingBallAngle(me->z, me->x, newball->getz(), newball->getx());
+      if (counter == 0)
+      {
+        cout << "robot angle (" << sName << "): " << myAngle << "   " << angles[1] << " " << angles[0] << endl;
+        cout << "robot should face " << myFinalAngle << "   " << me->z << " " << me->x << " " << newball->getz() << " " << newball->getx() << endl;
+      }
+      // now actually turn and then walk
+      turnRobot(myAngle, myFinalAngle);
+      move(motionForward);
+      counter = -1;
+    }
       
   }   
 }

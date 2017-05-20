@@ -73,7 +73,7 @@ Ball::Ball(char* name)
     // timeStep (line below): 32
     // WorldInfo, basicTimeStep: 16
     // WOrldInfo, FPS: 60
-  timeStep = 16;
+  timeStep = 64;
   // 32,16,60  - ping ~190 (double for second messages)
   // 8,16,60   - ping ~95
   // 8,16,30   - ping ~95
@@ -85,8 +85,8 @@ Ball::Ball(char* name)
   this->name = name;
   gps = new GPS("gps");
   gyro = new Gyro("gyro");
-  gps->enable(100);
-  gyro->enable(100);
+  gps->enable(timeStep);
+  gyro->enable(timeStep);
   emitter = getEmitter("emitter");
   emitter->setChannel(channelGeneral);
 }
@@ -113,7 +113,7 @@ void Ball::run()
     
     Data dataSending(MessageID, name, now, roleUndefined, loc[0], loc[1], loc[2], speed[0], speed[1], speed[2]);
     if (counter == 0)
-      cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName() << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " " << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << endl;
+      cout << sName << " sending!!!:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName() << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " " << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << endl;
 
     emitter->send(&dataSending, sizeof(dataSending));
     MessageID++;
