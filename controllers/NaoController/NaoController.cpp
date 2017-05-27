@@ -27,14 +27,6 @@
 #include <vector>
 #include <algorithm>
 
-#define NE "NE"  
-#define SE "SE" 
-#define NW "NW" 
-#define SW "SW" 
-#define NORTH "NORTH" 
-#define SOUTH "SOUTH" 
-#define EAST "EAST" 
-#define WEST "WEST" 
 #define PI 3.14159265
 
 using namespace webots;
@@ -79,11 +71,7 @@ class NaoRobot : public Robot
     NaoRobot(char* name);
     void run();
     double getAngle(double myPosX, double myPosZ, double ball_x, double ball_y); 
-    void rotate(double angle, string myDirect, string ballDirect); 
-    void move(string filename, bool loop, bool sync); 
-    void setMotion(double angle, string ballDirect); 
-    string ballQuadrant(double x, double y, double myPosX, double myPosZ); 
-    double setMyDirection(double anglex, double angley);
+    void move(string filename, bool loop, bool sync);
     bool ClosestToBall();
     double getRobotAngle(double angleX, double angleY);
     double getRobotFacingBallAngle(double robotX, double robotY, double ballX, double ballY);
@@ -186,176 +174,6 @@ void NaoRobot::move(string filename, bool loop = false, bool sync = true)
 double NaoRobot::getAngle(double myPosX, double myPosZ, double ball_x, double ball_y)
 {
   return abs(atan((ball_x - myPosX)/(ball_y - myPosZ))*180 / PI);
-}
-
-
-void NaoRobot::rotate(double angle, string myDirect, string ballDirect)
-{
-  cout<<"Angle: "<<angle<<" My direction: "<<myDirect<<endl;
-  if(myDirect == NORTH)
-  {
-    if(ballDirect == NE || ballDirect == NW)
-    {
-      setMotion(angle, ballDirect);
-    }
-    else if(ballDirect == SE || ballDirect == SW)
-    {
-      angle = 180 - angle;
-      setMotion(angle, ballDirect);
-    }
-  }
-  else if(myDirect == SOUTH)
-  {
-    if(ballDirect == NE || ballDirect == NW)
-    {
-      angle = 180 - angle;
-      setMotion(angle, ballDirect);
-    } 
-    else if(ballDirect == SE || ballDirect == SW)
-    {  
-      setMotion(angle, ballDirect);
-    }
-    
-  }
-  else if(myDirect == EAST)
-  {
-    if(ballDirect == NE || ballDirect == NW)
-    {
-      angle = 90 - angle;
-      setMotion(angle, ballDirect);
-    } 
-    else if(ballDirect == SE || ballDirect == SW)
-    {  
-      angle = 90 + angle;
-      setMotion(angle, ballDirect);
-    }
-    
-  }
-  else if(myDirect == WEST)
-  {
-    if(ballDirect == NE || ballDirect == NW)
-    {
-      angle = 90 + angle;
-      setMotion(angle, ballDirect);
-    } 
-    else if(ballDirect == SE || ballDirect == SW)
-    {  
-      angle = 90 - angle;
-      setMotion(angle, ballDirect);
-    }
-    
-  }
-}
-
-void NaoRobot::setMotion(double angle, string ballDirect)
-{
-  if(angle< 30)
-  {
-    cout << "ANGLE IS LESS THAN 30!! walking...\n";
-    move(motionForward);
-  }
-  else if(angle>=30 && angle <50)//40
-  {
-    if(myDirection == NORTH){
-        if(ballDirect == NE) move(right40);
-        if(ballDirect == NW) move(left40);
-    }
-    else if(myDirection == SOUTH){
-        if(ballDirect == SE) move(left40);
-        if(ballDirect == SW) move(right40);
-    }
-    else if(myDirection == EAST){
-        if(ballDirect == NE) move(left40);
-        if(ballDirect == SE) move(right40);
-    }
-    else if(myDirection == WEST){
-        if(ballDirect == NW) move(right40);
-        if(ballDirect == SW) move(left40);
-    }
-  }
-  else if(angle>=50 && angle <70)
-  {
-    if(myDirection == NORTH){
-        if(ballDirect == NE) move(right60);
-        if(ballDirect == NW) move(left60);
-    }
-    else if(myDirection == SOUTH){
-        if(ballDirect == SE) move(left60);
-        if(ballDirect == SW) move(right60);
-    }
-    else if(myDirection == EAST){
-        if(ballDirect == NE) move(left60);
-        if(ballDirect == SE) move(right60);
-    }
-    else if(myDirection == WEST){
-        if(ballDirect == NW) move(right60);
-        if(ballDirect == SW) move(left60);
-    }
-  }
-  else if(angle >= 70)
-  {
-    if(myDirection == NORTH){
-        if(ballDirect == NE||ballDirect == SE) move(right60);
-        if(ballDirect == NW||ballDirect == SW) move(left60);
-    }
-    else if(myDirection == SOUTH){
-        if(ballDirect == SE||ballDirect == NE) move(left60);
-        if(ballDirect == SW||ballDirect == NW) move(right60);
-    }
-    else if(myDirection == EAST){
-        if(ballDirect == NE||ballDirect == NW) move(left60);
-        if(ballDirect == SE||ballDirect == SW) move(right60);
-    }
-    else if(myDirection == WEST){
-        if(ballDirect == NW||ballDirect == NE) move(right60);
-        if(ballDirect == SW||ballDirect == SE) move(left60);
-    }
-    angle-=60;
-    setMotion(angle,ballDirect); 
-  }
-  
-}
-
-string NaoRobot::ballQuadrant(double x, double y, double myPosX, double myPosZ)
-{
-  cout<<"ballQuadrant: "<<x<<" "<<y<<" "<<myPosX<<" "<<myPosZ<<endl;
-  if(x>=myPosX)
-  {
-    cout<<" ball here 1"<<endl;
-    if(y>=myPosZ) return NE;
-    else if (y<myPosZ) return SE;
-  }
-  else if(x<myPosZ)
-  {
-    cout<<" ball here 2"<<endl;
-    if(y>=myPosZ) return NW;
-    else if (y<myPosZ) return SW;
-  }
-  else return "Error";
-}
-
-double NaoRobot::setMyDirection(double anglex, double angley)
-{
-  double rad = atan2(angley,anglex) *180/PI; // had as x/y
-  //return rad < 0 ? rad + 360 : rad;
-  
-  if(rad>=0.0)
-  {
-    if(rad<=45.0) rad = rad + 360;
-    if(rad >45 && rad <= 135) myDirection = NORTH;
-    if(rad >135 && rad <= 225) myDirection = WEST;
-    if(rad > 225 && rad <= 315) myDirection = SOUTH;
-    if(rad>315 && rad <=405) myDirection = EAST;
-  }
-  else
-  {
-    if(rad >= -45.0) rad = rad - 360;
-    if(rad < -45 && rad >= -135) myDirection = SOUTH;
-    if(rad < -135 && rad >= -225) myDirection = WEST;
-    if(rad < -225 && rad >= -315) myDirection = NORTH;
-    if(rad < -315 && rad >= -405) myDirection = EAST;
-  }
-  return rad;
 }
 
 double NaoRobot::getRobotAngle(double angleX, double angleY)
