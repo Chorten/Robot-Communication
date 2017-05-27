@@ -22,6 +22,7 @@
 #include <chrono>
 #include <../Data.h>
 #include <../NaoRobot2.h>
+#include <../Ball2.h>
 #include <cmath>
 #include <vector>
 #include <algorithm>
@@ -55,39 +56,25 @@ enum Role
   roleNone = 4
 };
 
-string motionHandWave = "../motions/HandWave.motion"; 
-string motionForward = "../motions/Forwards.motion"; 
-string motionForward50 = "../motions/Forwards50.motion"; 
-string right60 = "../motions/TurnRight60.motion"; 
-string right40 = "../motions/TurnRight40.motion"; 
-string left40 = "../motions/TurnLeft40.motion"; 
-string left60 = "../motions/TurnLeft60.motion"; 
+string motionHandWave = "../motions/HandWave.motion";
+string motionForward = "../motions/Forwards.motion";
+string motionForward50 = "../motions/Forwards50.motion";
+string right60 = "../motions/TurnRight60.motion";
+string right40 = "../motions/TurnRight40.motion";
+string left40 = "../motions/TurnLeft40.motion";
+string left60 = "../motions/TurnLeft60.motion";
 string left180 = "../motions/TurnLeft180.motion";
+string sideStepLeft = "../motions/SideStepLeft.motion";
+string sideStepRight =  "../motions/SideStepRight.motion";
 
-vector<string> robotNames = {"0001", "0002", "0003"};
+// team blue are those without a jersey and numbers are less than 1000
+// team red are those with a red jersey and numbers are  between 1000 to 2000
+vector<string> robotNames = {"0001", "0002", "1001"}; 
 vector<string> robotNamesIgnore = {"ball", "boss"};
 
 class NaoRobot : public Robot
 {
   public:
-    class Ball2
-    {
-        private:
-          double ball_x;
-          double ball_z;
-          string id;
-        public:
-          double getx(){return ball_x;}
-          double getz(){return ball_z;}
-          void setPos(double x, double z){
-            ball_x = x;
-            ball_z = z;
-          }
-          string getid(){
-            id = "ball";
-            return id;
-          }
-    };
     static const size_t nameSize = 4;
     NaoRobot(char* name);
     void run();
