@@ -191,7 +191,11 @@ double NaoRobot::getRobotFacingBallAngle(double robotX, double robotY, double ba
 void NaoRobot::turnRobot(double initialAngle, double finalAngle)
 {
   double turnAngle = finalAngle - initialAngle;
-  if (turnAngle > 0) // if positive turn left
+  if (initialAngle < 0)
+    initialAngle = initialAngle + 360;
+  if (turnAngle < 0)
+    turnAngle = turnAngle + 360;
+  if (turnAngle < 180) // turn left
   {
     if(turnAngle< 30)
       cout << "ANGLE IS LESS THAN 30!!\n";
@@ -202,16 +206,17 @@ void NaoRobot::turnRobot(double initialAngle, double finalAngle)
     else
     {
       move(left60);
-      turnRobot(initialAngle - 60, finalAngle);
+      turnRobot(initialAngle + 60, finalAngle);
     }
   }
-  else // if negative turn right
+  else // turn right
   {
-    if(-turnAngle< 30)
+    turnAngle = 360 - turnAngle;
+    if(turnAngle< 30)
       cout << "ANGLE IS LESS THAN 30!!\n";
-    else if(-turnAngle>=30 && -turnAngle<50)
+    else if(turnAngle>=30 && turnAngle<50)
       move(right40);
-    else if(-turnAngle>=50 && -turnAngle <70)
+    else if(turnAngle>=50 && turnAngle <70)
       move(right60);
     else
     {
@@ -352,7 +357,7 @@ void NaoRobot::run()
     now = GetTime();
     
     Data dataSending(MessageID, name, now, roleUndefined, loc[0], loc[1], loc[2], speed[0], speed[1], speed[2]);
-    if (counter == 0)
+    if (counter == -1)
       cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName()
         << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " "
         << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << " angles: " << angles[0]
@@ -365,7 +370,7 @@ void NaoRobot::run()
     MessageID++;
     if (receiver->getQueueLength()>0)
     {
-      if (counter == 0)
+      if (counter == -1)
         cout << "reciever  queue length: " << receiver->getQueueLength() << endl;
       while(receiver-> getQueueLength())
       {
@@ -375,7 +380,7 @@ void NaoRobot::run()
         now = GetTime();
         ping = (now - d->time);
           
-        if (counter == 0) //print every few steps instead of at each step
+        if (counter == -1) //print every few steps instead of at each step
           cout << sName << " received: (" << now << "): " << d->messageID << " " << d->getName()  << " " << d->time << " " << d->x << " " << d->y <<  " " << d->z << " " << d->velocityX << " " << d->velocityY << " " << d->velocityZ << " " << d->getMessage() << "; ping: " << ping << "ms" << endl;
 
         if(d->getName() == "ball")

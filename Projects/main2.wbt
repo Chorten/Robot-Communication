@@ -3,8 +3,8 @@ WorldInfo {
   basicTimeStep 16
 }
 Viewpoint {
-  orientation -0.18475996 -0.92150367 -0.34160614 2.2168567
-  position -4.4191915 4.5509743 -1.988787
+  orientation -0.58869965 -0.58869964 -0.55395437 2.0234964
+  position -0.92442515 5.9169886 0.36472761
 }
 Background {
   skyColor [
@@ -43,7 +43,7 @@ Nao {
   ]
 }
 DEF ball Robot {
-  translation -0.40108424 0.096712637 1.1248738
+  translation -0.40076494 0.096712637 1.1301193
   rotation 0.030642227 -0.64051598 -0.76733326 1.7714894
   children [
     GPS {
