@@ -1,6 +1,6 @@
 #include <../Data.h>
 
-Data::Data(size_t messageID, char* name, long time, int role, double x, double y, double z, double velocityX, double velocityY, double velocityZ, char* message, size_t messageSize)
+Data::Data(size_t messageID, char* name, long time, int role, double x, double y, double z, double velocityX, double velocityY, double velocityZ, char* message, size_t messageSize, int command)
 {
   this->messageID = messageID;
   setName(name); // new char[4];
@@ -14,6 +14,7 @@ Data::Data(size_t messageID, char* name, long time, int role, double x, double y
   this->velocityY = velocityY;
   this->velocityZ = velocityZ;
   setMessage(message, messageSize);
+  this->command = command;
 }
 
 void Data::setName(char* name)

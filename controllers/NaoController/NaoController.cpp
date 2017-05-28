@@ -16,7 +16,6 @@
 #include <webots/GPS.hpp>
 #include <webots/Gyro.hpp>
 #include <webots/Compass.hpp>
-#include <webots/InertialUnit.hpp>
 #include <cstring>
 #include <unistd.h>
 #include <chrono>
@@ -26,8 +25,11 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <exception>
 
 #define PI 3.14159265
+#define TEAM_RED_FORWARD_ANGLE 90
+#define TEAM_BLUE_FORWARD_ANGLE 270
 
 using namespace webots;
 using namespace std;
@@ -46,6 +48,22 @@ enum Role
   roleDefender = 2,
   roleGoale = 3,
   roleNone = 4
+};
+
+enum Status
+{
+  statusStandBy = 0,
+  statusGoingForBallToPass = 1,
+  statusGettingReadyToReceivePass = 2
+  
+};
+
+enum Command
+{
+  commandStandBy = 0,
+  commandDrillGreedy = 1,
+  commandDrillCooperative = 2,
+  commandDrillDeadlock = 3
 };
 
 string motionHandWave = "../motions/HandWave.motion";
@@ -75,6 +93,7 @@ class NaoRobot : public Robot
     bool ClosestToBall();
     double getRobotAngle(double angleX, double angleY);
     double getRobotFacingBallAngle(double robotX, double robotY, double ballX, double ballY);
+    double getForwardDirection();
     void turnRobot(double initialAngle, double finalAngle);
     
   private:
@@ -85,14 +104,12 @@ class NaoRobot : public Robot
     GPS* gps;
     Gyro* gyro;
     Compass* compass;
-    //InertialUnit* inertialUnit;
     Ball2 *newball;
     NaoRobot2* me;
     vector<NaoRobot2*> robots;
+    Command supervisorCommand = commandStandBy;
     long GetTime();
-    string myDirection;
-    string BallDirection;
-    Motion* motion; 
+    Motion* motion;
     double myPosX; 
     double myPosZ; 
     double myAngle; 
@@ -100,6 +117,7 @@ class NaoRobot : public Robot
     void UpdateRobot(const Data* data);
     void UpdateSelf(Data data);
     double Distance(double x1, double z1, double x2, double z2);
+    bool sameTeam(NaoRobot2* n);
 };
 
 NaoRobot::NaoRobot(char* name)
@@ -129,8 +147,6 @@ NaoRobot::NaoRobot(char* name)
   gyro->enable(timeStep);
   compass = new Compass("compass");
   compass->enable(timeStep);
-  //inertialUnit = new InertialUnit("inertial unit");
-  //inertialUnit->enable(timeStep);
 }
 
 long NaoRobot::GetTime()
@@ -160,13 +176,13 @@ void NaoRobot::move(string filename, bool loop = false, bool sync = true)
   }
   motion->setLoop(loop);
   motion->play();
-  cout << "MOTION " << filename << " STARTED\n";
+  //cout << "MOTION " << filename << " STARTED\n";
   if (sync)
     do {
       step(timeStep);
     }
     while (!motion->isOver());
-  cout << "MOTION " << filename << " STOPPED\n";
+  //cout << "MOTION " << filename << " STOPPED\n";
 
   //motion->setLoop(false);
 }
@@ -188,6 +204,14 @@ double NaoRobot::getRobotFacingBallAngle(double robotX, double robotY, double ba
   return rad < 0 ? rad + 360 : rad;
 }
 
+double NaoRobot::getForwardDirection()
+{
+  if (name[0] == '0')
+    return TEAM_RED_FORWARD_ANGLE;
+  else
+    return TEAM_BLUE_FORWARD_ANGLE;
+}
+
 void NaoRobot::turnRobot(double initialAngle, double finalAngle)
 {
   double turnAngle = finalAngle - initialAngle;
@@ -198,7 +222,7 @@ void NaoRobot::turnRobot(double initialAngle, double finalAngle)
   if (turnAngle < 180) // turn left
   {
     if(turnAngle< 30)
-      cout << "ANGLE IS LESS THAN 30!!\n";
+      {}
     else if(turnAngle>=30 && turnAngle<50)
       move(left40);
     else if(turnAngle>=50 && turnAngle <70)
@@ -206,14 +230,15 @@ void NaoRobot::turnRobot(double initialAngle, double finalAngle)
     else
     {
       move(left60);
-      turnRobot(initialAngle + 60, finalAngle);
+      //turnRobot(initialAngle + 60, finalAngle);
+      // don't actually do recursive call, better to return control and check if the robot should still turn
     }
   }
   else // turn right
   {
     turnAngle = 360 - turnAngle;
     if(turnAngle< 30)
-      cout << "ANGLE IS LESS THAN 30!!\n";
+      {}
     else if(turnAngle>=30 && turnAngle<50)
       move(right40);
     else if(turnAngle>=50 && turnAngle <70)
@@ -221,7 +246,8 @@ void NaoRobot::turnRobot(double initialAngle, double finalAngle)
     else
     {
       move(right60);
-      turnRobot(initialAngle - 60, finalAngle);
+      //turnRobot(initialAngle - 60, finalAngle);
+      // don't actually do recursive call, better to return control and check if the robot should still turn
     }
   }  
 }
@@ -241,31 +267,47 @@ bool NaoRobot::ClosestToBall()
   if (myDistance > 9999 || myDistance < -9999 || myDistance != myDistance) // has not finished initializing
     return false;
   
-  // check distance from ball for each robot
+  // check distance from ball for each robot on the same team
   for(int i = 0; i < robots.size(); i++)
   {
-    double distanceI = Distance(robots[i]->x, robots[i]->z, newball->getx(), newball->getz());
-    //cout << robots[i]->name + "'s distance to ball: " << distanceI << endl;
-    if (distanceI > 9999 || distanceI < -9999 || distanceI != distanceI) // has not finished initializing // !!! not working properly...
-      return false;
-    if(distanceI < myDistance)
-      return false;
-    else if(distanceI == myDistance)
-      try
+    if (sameTeam(robots[i]))
+    {
+      double distanceI = Distance(robots[i]->x, robots[i]->z, newball->getx(), newball->getz());
+      //cout << robots[i]->name + "'s distance to ball: " << distanceI << endl;
+      if (distanceI > 9999 || distanceI < -9999 || distanceI != distanceI) // has not finished initializing
+        return false;
+      if(distanceI < myDistance)
+        return false;
+      else if(distanceI == myDistance)
       {
-        cout << "SAME DISTANCE!!!" << endl;
-        if (stoi(me->name) < stoi(robots[i]->name))
+        try
         {
-          cout << "FALSE!" << endl;
-          return false;
+          cout << "SAME DISTANCE!!!" << endl;
+          if (stoi(me->name) < stoi(robots[i]->name))
+          {
+            cout << "FALSE!" << endl;
+            return false;
+          }
+        }
+        catch (...)
+        {
+          cout << "stoi failed" << endl;
         }
       }
-      catch (...)
-      {
-        cout << "stoi failed" << endl;
-      }
+    }
   }
   return true;
+}
+
+bool NaoRobot::sameTeam(NaoRobot2* n)
+{
+  try {
+    return name[0] == n->name[0];
+  }
+  catch (exception& e) {
+    cout << e.what() << endl;
+    return false;
+  }
 }
 
 void NaoRobot::UpdateRobot(const Data* data)
@@ -315,7 +357,8 @@ void NaoRobot::run()
   me = new NaoRobot2(sName);
   
   int counter = 0;
-  //bool init = false;
+  bool robotsInit = false;
+  bool ballInit = false;
   size_t MessageID = 1;
   size_t channel = channelGeneral;
   newball = new Ball2();
@@ -324,7 +367,6 @@ void NaoRobot::run()
   const double* loc;
   const double* speed;
   const double* angles;
-  const double* inertia;
   
   for(int i = 0; i < robotNames.size(); i++)
     if (robotNames[i] != string(name))
@@ -340,33 +382,13 @@ void NaoRobot::run()
     counter++;
     receiver->setChannel(channel);
     channel = (channel == channelGeneral ? channelSupervisor : channelGeneral); // doesnt work...
-    if (counter == 20)
-    {
+    
+    if (counter == timeStep)
       counter = 0;
-      //init = true;
-    }
-  
-    loc = gps->getValues();
-    speed = gyro->getValues();
-    angles = compass->getValues();
-    //inertia = inertialUnit->getRollPitchYaw();
-    
-    myPosX = loc[0]; // !!!c - was loc[2]
-    myPosZ = loc[2]; // !!!c - was loc[0]
-    
+
     now = GetTime();
     
-    Data dataSending(MessageID, name, now, roleUndefined, loc[0], loc[1], loc[2], speed[0], speed[1], speed[2]);
-    if (counter == -1)
-      cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName()
-        << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " "
-        << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << " angles: " << angles[0]
-        << " " << angles[1] << " " << angles[2] << endl;
-       //<< " inertia: " << inertia[0] << " " << inertia[1] << " " << inertia[2] << endl;
-    emitter->send(&dataSending, sizeof(dataSending));
-    
-    UpdateSelf(dataSending);
-    
+    //recieve data
     MessageID++;
     if (receiver->getQueueLength()>0)
     {
@@ -376,31 +398,57 @@ void NaoRobot::run()
       {
         d = (const Data*) receiver->getData();
         UpdateRobot(d);
+        if (d->getName() == "boss")
+        {
+          supervisorCommand = (Command)d->command;
+          cout << "recieved command from supervisor\n";
+        }
         
         now = GetTime();
         ping = (now - d->time);
           
         if (counter == -1) //print every few steps instead of at each step
-          cout << sName << " received: (" << now << "): " << d->messageID << " " << d->getName()  << " " << d->time << " " << d->x << " " << d->y <<  " " << d->z << " " << d->velocityX << " " << d->velocityY << " " << d->velocityZ << " " << d->getMessage() << "; ping: " << ping << "ms" << endl;
+          cout << sName << " received: (" << now << "): " << d->messageID << " " << d->getName()  << " " << d->time << " " << d->x << " " << d->y <<  " " << d->z << " " << d->velocityX << " " << d->velocityY << " " << d->velocityZ << " " << d->getMessage() << " " << d->command << " ; ping: " << ping << "ms" << endl;
 
         if(d->getName() == "ball")
         {
             newball->setPos(d->x, d->z); // !!! isnt it d->z, d->x
-            
-            //BallDirection = ballQuadrant(newball->getx(), newball->getz(), myPosX, myPosZ);
-
-            //myAngle = getAngle(myPosX, myPosZ, newball->getx(), newball->getz());
-            //rotate(myAngle,myDirection, BallDirection);
-            //move(motionForward); //C!!!
-            if(counter == 0)
-            {
-              //cout<<"My position: "<<myPosX <<" "<<myPosZ<<endl;
-              //cout<< "Ball's position: "<<newball->getx()<<" "<<newball->getz()<<endl;
-              //cout<<"Ball's direction: "<<BallDirection<<endl;
-            }
+            ballInit = true;
         }
         receiver->nextPacket();
       }
+    }
+    
+    // if supervisor commands to standby
+    if (supervisorCommand == commandStandBy)
+      continue;
+    
+    // send data    
+    loc = gps->getValues();
+    speed = gyro->getValues();
+    angles = compass->getValues();
+    myPosX = loc[0];
+    myPosZ = loc[2]; 
+    
+    Data dataSending(MessageID, name, now, roleUndefined, loc[0], loc[1], loc[2], speed[0], speed[1], speed[2]);
+    if (counter == -1)
+      cout << sName << " sending:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName()
+        << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " "
+        << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << " angles: " << angles[0]
+        << " " << angles[1] << " " << angles[2] << endl;
+    emitter->send(&dataSending, sizeof(dataSending));
+    
+    UpdateSelf(dataSending);
+    
+    // wait for everything to be initialzied before making a decision
+    if (!ballInit)
+      continue;
+    if (!robotsInit)
+    {
+      for(int i = 0; i < robots.size(); i++)
+        if (robots[i]->role == -1)
+          continue;
+      robotsInit = true;
     }
     
     // process data
@@ -410,8 +458,9 @@ void NaoRobot::run()
     {
       // calculate 
       double myAngle = getRobotAngle(angles[1], angles[0]);
+      //cout << me->z << " " << me->x << " " << newball->getz() << " " << newball->getx() << endl;
       double myFinalAngle = getRobotFacingBallAngle(me->z, me->x, newball->getz(), newball->getx());
-      if (counter == 0)
+      if (true)
       {
         cout << "robot angle (" << sName << "): " << myAngle << "   " << angles[1] << " " << angles[0] << endl;
         cout << "robot should face " << myFinalAngle << "   " << me->z << " " << me->x << " " << newball->getz() << " " << newball->getx() << endl;
@@ -420,6 +469,12 @@ void NaoRobot::run()
       turnRobot(myAngle, myFinalAngle);
       move(motionForward);
       counter = -1;
+    }
+    else // get reaqdy for a pass
+    {
+      double myAngle = getRobotAngle(angles[1], angles[0]);
+      turnRobot(myAngle, getForwardDirection());
+      move(motionForward);
     }
       
   }   

@@ -101,18 +101,13 @@ void Ball::run()
   while(step(timeStep) != -1)
   {
     counter++;
-    if (counter == 20)
-    {
-      cout << endl;
-      counter = 0;
-    }
   
     const double* loc = gps->getValues();
     const double* speed = gyro->getValues();
     now = getTime();
     
     Data dataSending(MessageID, name, now, roleUndefined, loc[0], loc[1], loc[2], speed[0], speed[1], speed[2]);
-    if (counter == 0)
+    if (counter == -1)
       cout << sName << " sending!!!:  (" << dataSending.time << "): " << dataSending.messageID << " " << dataSending.getName() << " " << dataSending.time << " " << dataSending.x << " " << dataSending.y << " " << dataSending.z << " " << dataSending.velocityX << " " << dataSending.velocityY << " " << dataSending.velocityZ << endl;
 
     emitter->send(&dataSending, sizeof(dataSending));

@@ -19,5 +19,6 @@ class NaoRobot2
     NaoRobot2(std::string name)
     {
       this->name = name;
+      role = -1;
     }
 };

@@ -6,12 +6,12 @@ minimizedPerspectives: 000000ff00000000fd00000003000000000000023000000505fc01000
 maximizedDockId: -1
 centralWidgetVisible: 1
 orthographicViewHeight: 1
-textFiles: 2 "controllers/SupervisorController/SupervisorController.cpp" "controllers/BallController/BallController.cpp" "controllers/NaoController/NaoController.cpp"
+textFiles: 0 "controllers/SupervisorController/SupervisorController.cpp" "controllers/BallController/BallController.cpp" "controllers/NaoController/NaoController.cpp" "controllers/NaoRobot2.h" "controllers/Data.h" "controllers/Data.cpp"
 documentationBook: 
 documentationPage: 
-renderingDevicePerspectives: 1693;0;0.05;0;0
 renderingDevicePerspectives: 894;0;0.05;0;0
-renderingDevicePerspectives: 94;0;0.05;0;0
 renderingDevicePerspectives: 893;0;0.05;0;0
+renderingDevicePerspectives: 94;0;0.05;0;0
 renderingDevicePerspectives: 93;0;0.05;0;0
 renderingDevicePerspectives: 1694;0;0.05;0;0
+renderingDevicePerspectives: 1693;0;0.05;0;0
