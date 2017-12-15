@@ -1,4 +1,4 @@
-# Senior-Design-Project
+# Robot-Communication
 
 Group members:
 
@@ -9,7 +9,7 @@ Chorten Dolma
 
 Objective: 
 
-The purpose of this project is to create 3D simulations of robots (with AI feature) that can communicate with each other to perform a specific task. For this project, we will focus on using a soccer match as its primary task. //We decided it will be played as a team, correct?
+The purpose of this project is to create 3D simulations of robots (with AI feature) that can communicate with each other to perform a specific task. For this project, we will focus on using a soccer match as its primary task.
 
 Software requirements:
 
